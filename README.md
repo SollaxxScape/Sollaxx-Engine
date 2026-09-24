@@ -9,6 +9,12 @@
   <p>This engine is compatible with Psych Engine 1.0+</p>
 </h3>
 
+## Discord:
+
+Join the discord server for the updates/announcements and support
+<a href=https://discord.gg/CN7WTE5Mbt>Discord Server Link</a>
+
+
 ## Customization:
 
 if you wish to disable things like *Lua Scripts* or *Video Cutscenes*, you can read over to `Project.xml`
