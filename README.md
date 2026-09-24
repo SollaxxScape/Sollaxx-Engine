@@ -9,10 +9,6 @@
   <p>This engine is compatible with Psych Engine 1.0+</p>
 </h3>
 
-## Installation:
-
-Refer to [the Build Instructions.](./BUILDING.md)
-
 ## Customization:
 
 if you wish to disable things like *Lua Scripts* or *Video Cutscenes*, you can read over to `Project.xml`
