@@ -133,7 +133,7 @@ SollaxxVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, FlxTextBorderSt
 SollaxxVer.antialiasing = true;
 add(SollaxxVer);
 
-var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 INDEV Alpha 2.2B92426a", 12);
+var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 INDEV Alpha 2.2C92426a", 12);
 micdUpVer.scrollFactor.set();
 micdUpVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 micdUpVer.antialiasing = true;
