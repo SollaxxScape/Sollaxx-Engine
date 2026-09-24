@@ -10,11 +10,6 @@
   <p>Successor to Psych Engine</p>
 </h3>
 
-## Discord:
-
-Join the discord server for the updates/announcements and support
-<a href=https://discord.gg/CN7WTE5Mbt>Discord Server Link</a>
-
 ## Compatibility:
 
 If you wish to port your Psych Engine mod to Sollaxx Engine it's very easy to do that.
@@ -33,8 +28,11 @@ to start you off, disabling Videos should be simple, simply Delete the line `"VI
 
 same goes for *Lua Scripts*, comment out or delete the line with `LUA_ALLOWED`, this and other customization options are all available within the `Project.xml` file
 
-<details>
-  <summary><h2>Credits</h2></summary>
+
+## Discord:
+
+Join the discord server for the updates/announcements and support
+<a href=https://discord.gg/CN7WTE5Mbt>Discord Server Link</a>
 
 # Credits
 * SollaxxScape - Main Developer/Programmer
