@@ -39,7 +39,8 @@ class CreditsState extends MusicBeatState
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
 			["Sollaxx Engine Team"],
-			["SollaxxScape",		"sollaxxscape",		"Main Programmer and Head of Sollaxx Engine",					"https://www.youtube.com/channel/UCbX9WlAabqfGyJzgMOxmlMQ",		"800080"],
+			["SollaxxScape",		"sollaxxscape",		"Main Programmer and Head of Sollaxx Engine",					"https://www.youtube.com/@NickDoodlez",		"800080"],
+			["NickDoodlez",		"sollaxxscape",		"Second Developer of Sollaxx Engine",					"https://www.youtube.com/channel/UCbX9WlAabqfGyJzgMOxmlMQ",		"800080"],
 			["Teki",				"dan",			"Main Artist of Sollaxx Engine",			"234581"],
 			[""],
 			["Former Engine Members"],
