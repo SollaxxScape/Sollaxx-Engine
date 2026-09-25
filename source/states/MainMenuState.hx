@@ -18,8 +18,8 @@ enum MainMenuColumn
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '1.0.4';
-	public static var SollaxxEngineVersion:String = '2.2';
+	public static var psychEngineVersion:String = '2.2N92526a';
+	public static var SollaxxEngineVersion:String = '2.2N92526a';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 
@@ -131,7 +131,7 @@ class MainMenuState extends MusicBeatState
 		SollaxxVer.antialiasing = true;
 		add(SollaxxVer);
 
-		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 Alpha 2.2N92526a", 12);
+		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 Alpha (" + MainMenuState.SollaxxEngineVersion + ")\n", 12);
 		micdUpVer.scrollFactor.set();
 		micdUpVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		micdUpVer.antialiasing = true;
@@ -186,13 +186,11 @@ class MainMenuState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		/**
 			if (FlxG.keys.justPressed.S)
 			{
 				MusicBeatState.switchState(new OutdatedState());
 			}
-			//well if you want to test the outdated state, you can uncomment this code and press S in the main menu
-		**/  
+			//well if you want to test the outdated state, you can uncomment this code and press S in the main menu 
 		if (FlxG.sound.music.volume < 0.8)
 			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
 
