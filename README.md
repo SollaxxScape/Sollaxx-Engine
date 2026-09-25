@@ -7,7 +7,7 @@
 <h3 align="center">
   <b>Sollaxx Engine is a Custom Engine that was originally made for the FNF Mod: SollVerse.</b>
   <p>This engine is compatible with Psych Engine 1.0+</p>
-  <p>Successor to Psych Engine</p>
+  <p>(maybe)Successor to Psych Engine</p>
 </h3>
 
 ## Compatibility:

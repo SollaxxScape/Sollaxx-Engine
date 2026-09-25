@@ -60,10 +60,10 @@ class OutdatedState extends MusicBeatState
 		add(titleText);
 
 		warnText = new FlxText(0, 0, FlxG.width,
-			"Sup bro, looks like you're running an\n" +
+			"Notice, you're running an\n" +
 			"outdated version of Sollaxx Engine (" + MainMenuState.SollaxxEngineVersion + ")\n" +
 			"please update to " + TitleState.updateVersion + "!\n\n" +
-			"Thank you for using the Mod!",
+			"Thank you for using the Engine	!",
 			32);
 		warnText.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, CENTER);
 		warnText.screenCenter(X);

@@ -43,7 +43,7 @@ class CreditsState extends MusicBeatState
 			["Teki",				"dan",			"Main Artist of Sollaxx Engine",			"234581"],
 			[""],
 			["Former Engine Members"],
-			["Old Programmer",			"face",				"Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta (Doesn't want to share his name.)",							"",			"3E813A"],
+			["BuilderEric14",			"face",				"Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta",							"",			"3E813A"],
 			[""],
 			["Funkin' Crew"],
 			["ninjamuffin99",		"ninjamuffin99",	"Programmer of Friday Night Funkin'",						"https://twitter.com/ninja_muffin99",	"CF2D2D"],
