@@ -119,19 +119,19 @@ class MainMenuState extends MusicBeatState
 			rightItem.x -= rightItem.width;
 		}
 
-		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin'");
+		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' 0.2.8");
 		psychVer.scrollFactor.set();
 		psychVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		psychVer.antialiasing = true;
 		add(psychVer);
 
-		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "SollVerse [Release 1.1]", 12);
+		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "Sollaxx Engine V2.2 Alpha", 12);
 		SollaxxVer.scrollFactor.set();
 		SollaxxVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		SollaxxVer.antialiasing = true;
 		add(SollaxxVer);
 
-		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 Alpha " + MainMenuState.SollaxxEngineVersion + "\n", 12);
+		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Build " + SollaxxEngineVersion + "\n", 12);
 		micdUpVer.scrollFactor.set();
 		micdUpVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		micdUpVer.antialiasing = true;
@@ -148,12 +148,6 @@ class MainMenuState extends MusicBeatState
 		#if MODS_ALLOWED
 		Achievements.reloadList();
 		#end
-
-		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && substates.OutdatedSubState.updateVersion != SollaxxEngineVersion) {
-			persistentUpdate = false;
-			showOutdatedWarning = false;
-			openSubState(new substates.OutdatedSubState());
-		}
 		#end
 
 		#if desktop
