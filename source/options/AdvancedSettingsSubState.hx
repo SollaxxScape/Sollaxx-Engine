@@ -52,6 +52,13 @@ class AdvancedSettingsSubState extends BaseOptionsMenu
 		option.onChange = onChangeCounter;
 		#end
 		
+		#if CHECK_FOR_UPDATES
+		var option:Option = new Option('Check for Updates',
+			'On Release builds, turn this on to check for updates when you start the game.',
+			'checkForUpdates',
+			BOOL);
+		addOption(option);
+		#end
 
 		var option:Option = new Option('Vocal Resync Indicator',
 			"If checked, it'll enable an indicator for syncing of the song vocals. Don't know why you'd need it, but it's there.",
