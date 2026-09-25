@@ -16,6 +16,8 @@ If you wish to port your Psych Engine mod to Sollaxx Engine it's very easy to do
 
 Sollaxx Engine is compatible with mods from Psych Engine. Tho some stuff like scripts/events may break. as this is still in experimental. We don't know if Psych 0.5.2h mods and older are compatible but you can try. Psych 0.6.3 mods and up are fully compatible!
 
+Warning: Backport may not work Psych older than 1.0.
+
 
 
 ## Customization:
