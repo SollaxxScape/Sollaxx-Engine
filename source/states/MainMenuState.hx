@@ -131,7 +131,7 @@ class MainMenuState extends MusicBeatState
 		SollaxxVer.antialiasing = true;
 		add(SollaxxVer);
 
-		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 Alpha (" + MainMenuState.SollaxxEngineVersion + ")\n", 12);
+		var micdUpVer:FlxText = new FlxText(12, FlxG.height - 24, FlxG.width - 24, "Sollaxx Engine v2.2 Alpha " + MainMenuState.SollaxxEngineVersion + "\n", 12);
 		micdUpVer.scrollFactor.set();
 		micdUpVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		micdUpVer.antialiasing = true;
@@ -148,6 +148,12 @@ class MainMenuState extends MusicBeatState
 		#if MODS_ALLOWED
 		Achievements.reloadList();
 		#end
+
+		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && substates.OutdatedSubState.updateVersion != SollaxxEngineVersion) {
+			persistentUpdate = false;
+			showOutdatedWarning = false;
+			openSubState(new substates.OutdatedSubState());
+		}
 		#end
 
 		#if desktop
