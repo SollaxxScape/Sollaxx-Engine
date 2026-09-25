@@ -73,6 +73,8 @@ class Character extends FlxSprite
 	public var cameraPosition:Array<Float> = [0, 0];
 	public var healthColorArray:Array<Int> = [255, 0, 0];
 
+	public var crossFadeColor:FlxColor = 0xFF00FFFF;
+
 	public var missingCharacter:Bool = false;
 	public var missingText:FlxText;
 	public var hasMissAnimations:Bool = false;
@@ -212,6 +214,9 @@ class Character extends FlxSprite
 		vocalsFile = json.vocals_file != null ? json.vocals_file : '';
 		originalFlipX = (json.flip_x == true);
 		editorIsPlayer = json._editor_isPlayer;
+
+		if (json.crossfade_color != null && json.crossfade_color.length > 2)
+			crossFadeColor = FlxColor.fromRGB(json.crossfade_color[0], json.crossfade_color[1], json.crossfade_color[2]);
 
 		// antialiasing
 		noAntialiasing = (json.no_antialiasing == true);
