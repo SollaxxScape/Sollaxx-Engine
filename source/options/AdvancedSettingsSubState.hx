@@ -43,16 +43,7 @@ class AdvancedSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 		option.onChange = onChangeCounter;
-		
-		var option:Option = new Option('Commit Counter',
-			'If unchecked, hides current build commit number.',
-			'showBuild',
-			BOOL);
-		addOption(option);
-		option.onChange = onChangeCounter;
-		#end
-		
-		#if CHECK_FOR_UPDATES
+
 		var option:Option = new Option('Check for Updates',
 			'On Release builds, turn this on to check for updates when you start the game.',
 			'checkForUpdates',
