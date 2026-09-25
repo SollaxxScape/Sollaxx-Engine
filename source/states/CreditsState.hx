@@ -41,7 +41,7 @@ class CreditsState extends MusicBeatState
 			["Sollaxx Engine Team"],
 			["SollaxxScape",		"sollaxxscape",		"Main Programmer and Head of Sollaxx Engine",					"https://www.youtube.com/@NickDoodlez",		"800080"],
 			["NickDoodlez",		"sollaxxscape",		"Second Developer of Sollaxx Engine",					"https://www.youtube.com/channel/UCbX9WlAabqfGyJzgMOxmlMQ",		"800080"],
-			["Teki",				"dan",			"Main Artist of Sollaxx Engine",			"234581"],
+			["Artémie",				"dan",			"Main Artist of Sollaxx Engine",			"234581"],
 			[""],
 			["Former Engine Members"],
 			["BuilderEric14",			"face",				"Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta",							"",			"3E813A"],
