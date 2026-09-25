@@ -40,4 +40,5 @@ Join the discord server for the updates/announcements and support
 * SollaxxScape - Main Developer/Programmer
 * NickDoodlez - Second Programmer
 * Artemie - Artist
+* BuilderEric14 - Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta
 _____________________________________
