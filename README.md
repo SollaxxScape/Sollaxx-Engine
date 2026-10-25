@@ -52,4 +52,5 @@ Join the discord server for the updates/announcements and support
 * Artemie - Artist
 * PLACEHOLDER_NAME - for creating Pause Menu theme for the engine 
 * BuilderEric14 - Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta
+* NickDoodlez - Helped me with Sollaxx Engine 2.2 Alphas.
 _____________________________________
