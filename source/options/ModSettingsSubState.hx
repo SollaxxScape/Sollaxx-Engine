@@ -188,4 +188,4 @@ class ModSettingsSubState extends BaseOptionsMenu
 		FlxG.save.flush();
 		super.close();
 	}
-}
+}

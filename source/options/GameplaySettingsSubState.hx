@@ -143,4 +143,4 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 
 	function onChangeAutoPause()
 		FlxG.autoPause = ClientPrefs.data.autoPause;
-}
+}

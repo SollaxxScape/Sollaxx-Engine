@@ -159,4 +159,4 @@ class School extends BaseStage
 			else tmr.reset(0.3);
 		});
 	}
-}
+}

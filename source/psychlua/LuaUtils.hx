@@ -308,7 +308,8 @@ class LuaUtils
 				indices = myIndices;
 			}
 
-			obj.animation.addByIndices(name, prefix, indices, '', framerate, loop);
+			if(prefix != null) obj.animation.addByIndices(name, prefix, indices, '', framerate, loop);
+			else obj.animation.add(name, indices, framerate, loop);
 			if(obj.animation.curAnim == null)
 			{
 				var dyn:Dynamic = cast obj;

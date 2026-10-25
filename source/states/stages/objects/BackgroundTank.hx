@@ -23,4 +23,4 @@ class BackgroundTank extends BGSprite
 		x = offsetX + 1500 * Math.cos(Math.PI / 180 * (tankAngle + 180));
 		y = offsetY + 1100 * Math.sin(Math.PI / 180 * (tankAngle + 180));
 	}
-}
+}

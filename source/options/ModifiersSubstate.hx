@@ -505,4 +505,4 @@ class GameplayOption
 		}
 		return null;
 	}
-}
+}

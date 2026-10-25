@@ -245,4 +245,4 @@ class GameOverSubstate extends MusicBeatSubstate
 		instance = null;
 		super.destroy();
 	}
-}
+}

@@ -42,4 +42,4 @@ class GitCommitMacro
 		} catch(e) {}
 		return macro $v{0}
 	}
-}
+}

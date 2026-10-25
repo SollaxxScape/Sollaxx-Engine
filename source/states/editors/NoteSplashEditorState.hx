@@ -1035,4 +1035,4 @@ class NoteSplashEditorHelpSubState extends MusicBeatSubstate
         if (controls.BACK || FlxG.keys.justPressed.F1)
             close();
     }
-}
+}

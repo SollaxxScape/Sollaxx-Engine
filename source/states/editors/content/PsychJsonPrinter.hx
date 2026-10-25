@@ -197,4 +197,4 @@ class PsychJsonPrinter extends JsonPrinter
 				add('null');
 		}
 	}
-}
+}

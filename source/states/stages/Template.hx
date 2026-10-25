@@ -120,4 +120,4 @@ class Template extends BaseStage
 				}
 		}
 	}
-}
+}

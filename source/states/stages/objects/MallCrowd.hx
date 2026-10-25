@@ -28,4 +28,4 @@ class MallCrowd extends BGSprite
 		if(heyTimer > 0) return;
 		super.dance(forceplay);
 	}
-}
+}

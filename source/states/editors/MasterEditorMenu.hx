@@ -170,4 +170,4 @@ class MasterEditorMenu extends MusicBeatState
 		directoryTxt.text = directoryTxt.text.toUpperCase();
 	}
 	#end
-}
+}

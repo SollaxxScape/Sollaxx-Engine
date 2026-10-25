@@ -67,4 +67,4 @@ class PsychUICheckBox extends FlxSpriteGroup
 	function set_label(v:String):String {
 		return (text.text = v);
 	}
-}
+}

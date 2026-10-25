@@ -24,7 +24,7 @@ class MusicBeatState extends FlxState
 	}
 
 	public static var windowNameSuffix:String = "";
-	public static var windowNamePrefix:String = "Friday Night Funkin': SollVerse";
+	public static var windowNamePrefix:String = "Friday Night Funkin': Sollaxx Engine";
 
 	var _psychCameraInitialized:Bool = false;
 
@@ -41,7 +41,7 @@ class MusicBeatState extends FlxState
 		super.create();
 
 		if(!skip) {
-			openSubState(new CustomFadeTransition(0.6, true));
+			openSubState(new CustomFadeTransition(0.4, true));
 		}
 		FlxTransitionableState.skipNextTransOut = false;
 		timePassedOnState = 0;

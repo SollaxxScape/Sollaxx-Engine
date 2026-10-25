@@ -281,4 +281,4 @@ class ShaderFunctions
 		return cast (target.shader, FlxRuntimeShader);
 	}
 	#end
-}
+}

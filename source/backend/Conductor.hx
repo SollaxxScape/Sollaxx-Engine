@@ -141,4 +141,4 @@ class Conductor
 
 		return bpm = newBPM;
 	}
-}
+}

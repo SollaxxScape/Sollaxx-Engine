@@ -620,4 +620,4 @@ class LoadingState extends MusicBeatState
 			trace(e.details());
 		}
 	}
-}
+}

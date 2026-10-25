@@ -124,4 +124,4 @@ class BasePrompt extends MusicBeatSubstate
 		for (member in members) FlxDestroyUtil.destroy(member);
 		super.destroy();
 	}
-}
+}

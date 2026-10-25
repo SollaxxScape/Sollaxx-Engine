@@ -559,4 +559,4 @@ class Character extends FlxSprite
 		super.destroy();
 	}
 	#end
-}
+}

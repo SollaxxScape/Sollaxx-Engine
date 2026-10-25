@@ -368,4 +368,4 @@ class PicoBlazinHandler
 	function get_dad() return PlayState.instance.dad;
 	function get_boyfriendGroup() return PlayState.instance.boyfriendGroup;
 	function get_dadGroup() return PlayState.instance.dadGroup;
-}
+}

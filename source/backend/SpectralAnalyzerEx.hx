@@ -158,4 +158,4 @@ class SpectralAnalyzerEx #if funkin.vis extends SpectralAnalyzer #end
 		return [{value: 0, peak: 0}];
 	}
 	#end
-}
+}

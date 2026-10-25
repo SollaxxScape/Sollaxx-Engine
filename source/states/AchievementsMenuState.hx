@@ -359,4 +359,4 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 }
-#end
+#end

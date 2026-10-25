@@ -196,4 +196,4 @@ class WeekData {
 			Mods.currentModDirectory = data.folder;
 		}
 	}
-}
+}

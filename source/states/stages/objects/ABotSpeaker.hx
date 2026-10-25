@@ -133,4 +133,4 @@ class ABotSpeaker extends FlxSpriteGroup
 		if(!lookingAtRight) eyes.anim.play('lookright', true);
 		lookingAtRight = true;
 	}
-}
+}

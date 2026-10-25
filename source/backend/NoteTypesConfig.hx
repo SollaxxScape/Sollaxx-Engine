@@ -127,4 +127,4 @@ class NoteTypesConfig
 		if(value.contains('.')) return Std.parseFloat(value);
 		return Std.parseInt(value);
 	}
-}
+}

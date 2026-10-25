@@ -474,4 +474,4 @@ class AlphaCharacter extends FlxSprite
 		super.updateHitbox();
 		updateLetterOffset();
 	}
-}
+}

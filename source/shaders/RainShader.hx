@@ -508,4 +508,4 @@ class RainShader extends FlxShader
 		__paramFloat.push(res);
 		return res;
 	}
-}
+}

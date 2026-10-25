@@ -497,4 +497,4 @@ class CustomFlxColor {
 		return cast FlxColor.fromString(str);
 	}
 }
-#end
+#end

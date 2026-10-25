@@ -299,8 +299,11 @@ class PlayState extends MusicBeatState
 	public var startCallback:Void->Void = null;
 	public var endCallback:Void->Void = null;
 
+	private static var _lastLoadedModDirectory:String = '';
+	public static var nextReloadAll:Bool = false;
 	override public function create()
 	{
+		_lastLoadedModDirectory = Mods.currentModDirectory;
 		// trace('Playback Rate: ' + playbackRate);
 		Paths.clearStoredMemory();
 
@@ -676,7 +679,7 @@ class PlayState extends MusicBeatState
 		judgementCounter.borderSize = 1.25;
 		uiGroup.add(judgementCounter);
 
-		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Alpha 2.2O92526a", 16);
+		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2A102526b", 16);
 		versionTxt.antialiasing = true;
 		versionTxt.setFormat(Paths.font("vcr.ttf"), 15, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionTxt.scrollFactor.set();
@@ -1798,7 +1801,7 @@ class PlayState extends MusicBeatState
 				var spawnTime:Float = songNotes[0];
 				var noteColumn:Int = Std.int(songNotes[1] % totalColumns);
 				var holdLength:Float = songNotes[2];
-				var noteType:String = songNotes[3];
+				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
 				if (Math.isNaN(holdLength))
 					holdLength = 0.0;
 
@@ -1817,9 +1820,15 @@ class PlayState extends MusicBeatState
 					// CLEAR ANY POSSIBLE GHOST NOTES
 					for (evilNote in unspawnNotes)
 					{
-						var matches:Bool = noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress;
-						if (matches && Math.abs(spawnTime - evilNote.strumTime) == 0.0)
+						var matches:Bool = noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType;
+						if (matches && Math.abs(spawnTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON)
 						{
+							if (evilNote.tail.length > 0)
+								for (tail in evilNote.tail)
+								{
+									tail.destroy();
+									unspawnNotes.remove(tail);
+								}
 							evilNote.destroy();
 							unspawnNotes.remove(evilNote);
 							ghostNotesCaught++;
@@ -2202,7 +2211,8 @@ class PlayState extends MusicBeatState
 		if (!inCutscene && !paused && !freezeCamera)
 		{
 			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
-			if (!startingSong && !endingSong && boyfriend.getAnimationName().startsWith('idle'))
+			var idleAnim:Bool = (boyfriend.getAnimationName().startsWith('idle') || boyfriend.getAnimationName().startsWith('danceLeft') || boyfriend.getAnimationName().startsWith('danceRight'));
+			if (!startingSong && !endingSong && idleAnim)
 			{
 				boyfriendIdleTime += elapsed;
 				if (boyfriendIdleTime >= 0.15)
@@ -2572,8 +2582,9 @@ class PlayState extends MusicBeatState
 			healthBar.bounds.min, healthBar.bounds.max, 0, 100);
 		healthBar.percent = (newPercent != null ? newPercent : 0);
 
-		iconP1.animation.curAnim.curFrame = (healthBar.percent < 20) ? 1 : 0; // If health is under 20%, change player icon to frame 1 (losing icon), otherwise, frame 0 (normal)
-		iconP2.animation.curAnim.curFrame = (healthBar.percent > 80) ? 1 : 0; // If health is over 80%, change opponent icon to frame 1 (losing icon), otherwise, frame 0 (normal)
+		// V-Slice style icon states: the icon handles the normal / losing / winning transition itself
+		iconP1.setIconState((healthBar.percent < 20) ? "losing" : ((healthBar.percent > 80) ? "winning" : "idle"));
+		iconP2.setIconState((healthBar.percent > 80) ? "losing" : ((healthBar.percent < 20) ? "winning" : "idle"));
 		return health;
 	}
 

@@ -61,6 +61,12 @@ class FreeplayState extends MusicBeatState
 	
 	var selectable:Bool = false;
 
+	// Instrumental preview (plays the inst of the hovered song and beats to its BPM)
+	var previewTimer:FlxTimer = null;
+	var previewKey:String = null;
+	var previewIsFreaky:Bool = false;
+	var lastFreakySound:Dynamic = null;
+
 	override function create()
 	{
 		//Paths.clearStoredMemory();
@@ -210,7 +216,6 @@ class FreeplayState extends MusicBeatState
 
 		if(curPlaying)
 		{
-			grpIcons.members[instPlaying].canBounce = true;
 		}
 
 		changeSelection();
@@ -258,7 +263,17 @@ class FreeplayState extends MusicBeatState
 			return;
 
 		if (FlxG.sound.music.volume < 0.7)
-			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
+			FlxG.sound.music.volume += 0.5 * elapsed;
+
+		// Beat to the music that is currently playing (song instrumental or freakyMenu)
+		if (FlxG.sound.music != null && FlxG.sound.music.playing)
+			Conductor.songPosition = FlxG.sound.music.time + ClientPrefs.data.noteOffset;
+
+		if (bg.scale.x > 1.0)
+		{
+			var bgMult:Float = FlxMath.lerp(1, bg.scale.x, Math.exp(-elapsed * 6));
+			bg.scale.set(bgMult, bgMult);
+		}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));
 		lerpRating = FlxMath.lerp(intendedRating, lerpRating, Math.exp(-elapsed * 12));
@@ -349,16 +364,15 @@ class FreeplayState extends MusicBeatState
 				player.playingMusic = false;
 				player.switchPlayMusic();
 
-				for (funnyIcon in grpIcons.members)
-					funnyIcon.canBounce = false;
 				curPlaying = false;
 
-				FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
-				FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
+				previewKey = null;
+				schedulePreview(0.1);
 			}
 			else 
 			{
 				persistentUpdate = false;
+				restoreMenuMusic();
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				MusicBeatState.switchState(new MainMenuState());
 				// MusicBeatState.switchState(new GamemodesMenuState());
@@ -374,6 +388,7 @@ class FreeplayState extends MusicBeatState
 		{
 			if(instPlaying != curSelected && !player.playingMusic)
 			{
+				cancelPreviewTimer();
 				destroyFreeplayVocals();
 				FlxG.sound.music.volume = 0;
 
@@ -436,9 +451,6 @@ class FreeplayState extends MusicBeatState
 				instPlaying = curSelected;
 
 				Conductor.set_bpm(PlayState.SONG.bpm);
-				for (funnyIcon in grpIcons.members)
-					funnyIcon.canBounce = false;
-				grpIcons.members[instPlaying].canBounce = true;
 				curPlaying = true;
 
 				player.playingMusic = true;
@@ -449,8 +461,6 @@ class FreeplayState extends MusicBeatState
 			else if (instPlaying == curSelected && player.playingMusic)
 			{
 				player.pauseOrResume(!player.playing);
-				for (funnyIcon in grpIcons.members)
-					funnyIcon.canBounce = false;
 				curPlaying = false;
 			}
 		}
@@ -646,6 +656,8 @@ class FreeplayState extends MusicBeatState
 
 		changeDiff();
 		_updateSongLastDifficulty();
+
+		schedulePreview(previewKey == null ? 0.1 : 0.35);
 	}
 
 	inline private function _updateSongLastDifficulty()
@@ -663,13 +675,109 @@ class FreeplayState extends MusicBeatState
 	override function beatHit() {
 		super.beatHit();
 
-		if (curPlaying)
+		if (songs.length > 0 && FlxG.sound.music != null && FlxG.sound.music.playing)
 		{
-			if (grpIcons.members[instPlaying].canBounce) grpIcons.members[instPlaying].bounce();
-			bg.scale.set(1.02,1.02);
-			bg.updateHitbox();
-			bg.offset.set();
+			bg.scale.set(1.03, 1.03);
 		}
+	}
+
+	// ---- Instrumental preview ----
+	function cancelPreviewTimer()
+	{
+		if (previewTimer != null)
+		{
+			previewTimer.cancel();
+			previewTimer.destroy();
+			previewTimer = null;
+		}
+	}
+
+	function schedulePreview(delay:Float = 0.35)
+	{
+		cancelPreviewTimer();
+		if (player != null && player.playingMusic) return;
+		previewTimer = new FlxTimer().start(delay, function(tmr:FlxTimer)
+		{
+			previewTimer = null;
+			startPreview();
+		});
+	}
+
+	static function getFreakyBPM():Float
+	{
+		try
+		{
+			var json:Dynamic = tjson.TJSON.parse(Paths.getTextFromFile('images/gfDanceTitle.json'));
+			if (json != null && json.bpm != null) return json.bpm;
+		}
+		catch (e:Dynamic) {}
+		return 102;
+	}
+
+	function startPreview()
+	{
+		if (player.playingMusic || songs.length < 1) return;
+
+		var song:SongMetadata = songs[curSelected];
+		var songPath:String = Paths.formatToSongPath(song.songName);
+		Mods.currentModDirectory = song.folder;
+
+		var instSound = Paths.returnSound(songPath + '/Inst', 'songs', true, false);
+		if (instSound == null)
+		{
+			// No instrumental for this song: just play (or keep playing) the freakyMenu theme
+			var freaky = Paths.music('freakyMenu');
+			var alreadyPlaying:Bool = FlxG.sound.music != null && FlxG.sound.music.playing;
+			var keepGoing:Bool = alreadyPlaying && ((previewIsFreaky && lastFreakySound == freaky) || previewKey == null);
+
+			previewKey = '__freaky';
+			previewIsFreaky = true;
+			lastFreakySound = freaky;
+
+			Conductor.bpmChangeMap = [];
+			Conductor.bpm = getFreakyBPM();
+			if (!keepGoing)
+				FlxG.sound.playMusic(freaky, 0);
+			return;
+		}
+
+		var key:String = song.folder + '|' + song.songName;
+		if (previewKey == key && FlxG.sound.music != null && FlxG.sound.music.playing) return;
+		previewKey = key;
+		previewIsFreaky = false;
+
+		// Use the song's BPM (and BPM changes) so the menu beats along with the instrumental
+		var chart:SwagSong = null;
+		try { chart = Song.getChart(Highscore.formatSong(songPath, curDifficulty), songPath); } catch (e:Dynamic) {}
+		if (chart == null)
+			try { chart = Song.getChart(songPath, songPath); } catch (e:Dynamic) {}
+
+		if (chart != null && chart.bpm > 0)
+		{
+			Conductor.bpm = chart.bpm;
+			Conductor.mapBPMChanges(chart);
+		}
+		else
+		{
+			Conductor.bpmChangeMap = [];
+			Conductor.bpm = 100;
+		}
+		Conductor.songPosition = 0;
+		FlxG.sound.playMusic(instSound, 0);
+	}
+
+	function restoreMenuMusic()
+	{
+		cancelPreviewTimer();
+		if (previewKey != null && !previewIsFreaky)
+		{
+			// An instrumental is playing, bring the menu theme back
+			Mods.loadTopMod();
+			FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+			FlxTween.tween(FlxG.sound.music, {volume: 1}, 0.4);
+		}
+		Conductor.bpmChangeMap = [];
+		Conductor.bpm = getFreakyBPM();
 	}
 
 	var _drawDistance:Int = 4;
@@ -681,6 +789,8 @@ class FreeplayState extends MusicBeatState
 		{
 			grpSongs.members[i].visible = grpSongs.members[i].active = false;
 			iconArray[i].visible = iconArray[i].active = false;
+			iconArray[i].scale.set(1, 1);
+			iconArray[i].updateHitbox();
 		}
 		_lastVisibles = [];
 
@@ -701,6 +811,7 @@ class FreeplayState extends MusicBeatState
 
 	override function destroy():Void
 	{
+		cancelPreviewTimer();
 		super.destroy();
 
 		FlxG.autoPause = ClientPrefs.data.autoPause;
@@ -731,4 +842,4 @@ class SongMetadata
 		this.folder = Mods.currentModDirectory;
 		if(this.folder == null) this.folder = '';
 	}
-}
+}

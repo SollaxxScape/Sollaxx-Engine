@@ -174,4 +174,4 @@ class AchievementPopup extends openfl.display.Sprite {
 		bitmaps = null;
 	}
 }
-#end
+#end

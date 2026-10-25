@@ -224,4 +224,4 @@ class InputFormatter {
 				return arr.join(' ');
 		}
 	}
-}
+}

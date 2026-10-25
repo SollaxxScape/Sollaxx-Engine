@@ -227,4 +227,4 @@ class Mods
 			Mods.currentModDirectory = list[0];
 		#end
 	}
-}
+}

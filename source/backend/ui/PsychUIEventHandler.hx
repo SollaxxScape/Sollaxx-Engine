@@ -17,4 +17,4 @@ class PsychUIEventHandler
 
 interface PsychUIEvent {
 	public function UIEvent(id:String, sender:Dynamic):Void;
-}
+}

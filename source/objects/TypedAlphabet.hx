@@ -89,4 +89,4 @@ class TypedAlphabet extends Alphabet
 		if(onFinish != null) onFinish();
 		_timeToUpdate = 0;
 	}
-}
+}

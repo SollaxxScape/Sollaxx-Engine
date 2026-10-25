@@ -27,4 +27,4 @@ class DadBattleFog extends FlxSpriteGroup
 		smoke.antialiasing = ClientPrefs.data.antialiasing;
 		add(smoke);
 	}
-}
+}

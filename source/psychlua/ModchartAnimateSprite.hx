@@ -23,4 +23,4 @@ class ModchartAnimateSprite extends PsychFlxAnimate
 		animOffsets.set(name, [x, y]);
 	}
 }
-#end
+#end

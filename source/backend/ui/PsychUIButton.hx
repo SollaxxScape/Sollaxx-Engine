@@ -110,4 +110,4 @@ class PsychUIButton extends FlxSpriteGroup
 		if(text != null && text.exists) text.text = v;
 		return (label = v);
 	}
-}
+}

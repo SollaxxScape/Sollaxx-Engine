@@ -111,4 +111,4 @@ class PsychCamera extends FlxCamera
 	{
 		return followLerp = value;
 	}
-}
+}

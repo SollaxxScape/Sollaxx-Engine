@@ -230,4 +230,4 @@ class ChartSubstate extends MusicBeatSubstate
                     spr.updateHitbox();
                 });
         }
-}
+}

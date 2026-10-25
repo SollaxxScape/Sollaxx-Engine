@@ -150,4 +150,4 @@ class Bar extends FlxSpriteGroup
 		regenerateClips();
 		return value;
 	}
-}
+}

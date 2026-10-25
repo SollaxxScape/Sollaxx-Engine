@@ -110,4 +110,4 @@ class ColorblindFilters {
         }
         FlxG.game.setFilters(filterArray);
     }
-}
+}

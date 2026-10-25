@@ -131,4 +131,4 @@ class OutdatedState extends MusicBeatState
 			MusicBeatState.switchState(new MainMenuState());
 		});
 	}
-}
+}

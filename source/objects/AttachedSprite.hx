@@ -44,4 +44,4 @@ class AttachedSprite extends FlxSprite
 				visible = sprTracker.visible;
 		}
 	}
-}
+}

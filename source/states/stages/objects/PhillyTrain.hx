@@ -92,4 +92,4 @@ class PhillyTrain extends BGSprite
 		finishing = false;
 		startedMoving = false;
 	}
-}
+}

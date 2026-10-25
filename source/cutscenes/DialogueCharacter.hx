@@ -123,4 +123,4 @@ class DialogueCharacter extends FlxSprite
 		if(animation.curAnim == null) return false;
 		return !animation.curAnim.name.endsWith(IDLE_POSTFIX);
 	}
-}
+}

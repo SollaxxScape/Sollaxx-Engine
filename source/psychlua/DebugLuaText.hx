@@ -19,4 +19,4 @@ class DebugLuaText extends FlxText
 
 		if(alpha == 0 || y >= FlxG.height) kill();
 	}
-}
+}

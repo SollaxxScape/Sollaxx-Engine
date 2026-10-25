@@ -94,4 +94,4 @@ class StageWeek1 extends BaseStage
 				}
 		}
 	}
-}
+}

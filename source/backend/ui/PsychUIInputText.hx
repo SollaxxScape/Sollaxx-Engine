@@ -739,4 +739,4 @@ class PsychUIInputText extends FlxSpriteGroup
 		}
 		return text;
 	}
-}
+}

@@ -478,4 +478,4 @@ class PauseSubState extends MusicBeatSubstate
 			+ ' / '
 			+ FlxStringUtil.formatTime(Math.max(0, Math.floor(FlxG.sound.music.length / 1000)), false);
 	}
-}
+}

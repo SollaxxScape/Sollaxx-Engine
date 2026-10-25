@@ -46,4 +46,4 @@ class ErrorState extends MusicBeatState
 
 		super.update(elapsed);
 	}
-}
+}

@@ -330,4 +330,4 @@ class PsychUIRadioItem extends PsychUICheckBox
 		box.animation.add('true', [1]);
 		box.animation.play('false');
 	}
-}
+}

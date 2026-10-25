@@ -69,4 +69,4 @@ class Difficulty
 	{
 		return defaultDifficulty;
 	}
-}
+}

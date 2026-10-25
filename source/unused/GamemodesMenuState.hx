@@ -283,4 +283,4 @@ class GamemodesMenuState extends MusicBeatState
 			spr.updateHitbox();
 		});
 	}
-}
+}

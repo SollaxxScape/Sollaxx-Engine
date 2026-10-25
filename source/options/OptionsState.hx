@@ -222,4 +222,4 @@ class OptionsState extends MusicBeatState
 		
 		super.destroy();
 	}
-}
+}

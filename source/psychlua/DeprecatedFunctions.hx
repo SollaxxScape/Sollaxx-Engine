@@ -150,4 +150,4 @@ class DeprecatedFunctions
 			FunkinLua.luaTrace('musicFadeOut is deprecated! Use soundFadeOut instead.', false, true);
 		});
 	}
-}
+}

@@ -162,4 +162,4 @@ class Highscore
 		if (FlxG.save.data.songRanks != null)
 			songRanks = FlxG.save.data.songRanks;
 	}
-}
+}

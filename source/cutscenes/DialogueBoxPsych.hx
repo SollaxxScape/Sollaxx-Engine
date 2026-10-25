@@ -417,4 +417,4 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		
 		if(!box.flipX) box.offset.y += 10;
 	}
-}
+}

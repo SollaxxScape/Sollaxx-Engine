@@ -110,4 +110,4 @@ class Spooky extends BaseStage
 			}
 		});
 	}
-}
+}

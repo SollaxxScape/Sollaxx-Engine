@@ -3,7 +3,6 @@ package states.editors;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 
-import flixel.system.debug.interaction.tools.Pointer.GraphicCursorCross;
 import flixel.util.FlxDestroyUtil;
 
 import openfl.net.FileReference;
@@ -111,9 +110,12 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		addCharacter();
 
-		cameraFollowPointer = new FlxSprite().loadGraphic(FlxGraphic.fromClass(GraphicCursorCross));
-		cameraFollowPointer.setGraphicSize(40, 40);
-		cameraFollowPointer.updateHitbox();
+		// Crosshair is drawn here because flixel 6.1+ removed Pointer.GraphicCursorCross
+		cameraFollowPointer = new FlxSprite().makeGraphic(40, 40, FlxColor.TRANSPARENT, true);
+		flixel.util.FlxSpriteUtil.drawRect(cameraFollowPointer, 18, 0, 4, 40, FlxColor.BLACK);
+		flixel.util.FlxSpriteUtil.drawRect(cameraFollowPointer, 0, 18, 40, 4, FlxColor.BLACK);
+		flixel.util.FlxSpriteUtil.drawRect(cameraFollowPointer, 19, 0, 2, 40, FlxColor.WHITE);
+		flixel.util.FlxSpriteUtil.drawRect(cameraFollowPointer, 0, 19, 40, 2, FlxColor.WHITE);
 
 		healthBar = new Bar(30, FlxG.height - 75);
 		healthBar.scrollFactor.set();
@@ -1329,4 +1331,4 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			_file.save(data, '$_char.json');
 		}
 	}
-}
+}

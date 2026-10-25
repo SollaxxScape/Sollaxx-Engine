@@ -1284,4 +1284,4 @@ class Snd {
 		#end
 		return cast fbank;
 	}
-}
+}

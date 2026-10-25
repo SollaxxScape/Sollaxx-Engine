@@ -420,4 +420,4 @@ class PixelSplashShader extends FlxShader
 	{
 		super();
 	}
-}
+}

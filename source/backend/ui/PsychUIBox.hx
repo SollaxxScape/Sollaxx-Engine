@@ -300,4 +300,4 @@ class PsychUIBox extends FlxSpriteGroup
 		}
 		return (isMinimized = v);
 	}
-}
+}

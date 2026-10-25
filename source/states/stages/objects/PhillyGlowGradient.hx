@@ -10,7 +10,7 @@ class PhillyGlowGradient extends FlxSprite
 		super(x, y);
 		originalY = y;
 
-		loadGraphic(Paths.image('philly/gradient'));
+		loadGraphic(Paths.image('philly/gradient')); //This shit was refusing to properly load FlxGradient so fuck it
 		scrollFactor.set(0, 0.75);
 		setGraphicSize(2000, originalHeight);
 		updateHitbox();
@@ -43,4 +43,4 @@ class PhillyGlowGradient extends FlxSprite
 		y = originalY;
 		alpha = intendedAlpha;
 	}
-}
+}

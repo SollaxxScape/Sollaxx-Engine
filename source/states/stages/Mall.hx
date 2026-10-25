@@ -99,4 +99,4 @@ class Mall extends BaseStage
 		}
 		else endSong();
 	}
-}
+}

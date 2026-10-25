@@ -61,4 +61,4 @@ class CheckboxThingie extends FlxSprite
 				offset.set(0, 2);
 		}
 	}
-}
+}

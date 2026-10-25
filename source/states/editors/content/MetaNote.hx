@@ -180,4 +180,4 @@ class EventMetaNote extends MetaNote
 		eventText = FlxDestroyUtil.destroy(eventText);
 		super.destroy();
 	}
-}
+}

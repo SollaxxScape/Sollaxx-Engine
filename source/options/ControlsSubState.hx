@@ -520,4 +520,4 @@ class ControlsSubState extends MusicBeatSubstate
 		selectSpr.sprTracker = grpBlacks.members[Math.floor(curSelected * 2) + (curAlt ? 1 : 0)];
 		selectSpr.visible = (selectSpr.sprTracker != null);
 	}
-}
+}

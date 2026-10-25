@@ -139,4 +139,4 @@ class LanguageSubState extends MusicBeatSubstate
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 	}
 	#end
-}
+}

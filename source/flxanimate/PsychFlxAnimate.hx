@@ -105,4 +105,4 @@ class PsychFlxAnimate extends OriginalFlxAnimate
 		if(anim.curInstance == null || anim.curSymbol == null) return;
 		anim.play();
 	}
-}
+}

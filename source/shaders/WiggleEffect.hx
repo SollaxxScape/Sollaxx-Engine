@@ -135,4 +135,4 @@ class WiggleShader extends FlxShader
 	{
 		super();
 	}
-}
+}

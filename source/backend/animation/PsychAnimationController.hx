@@ -15,4 +15,4 @@ class PsychAnimationController extends FlxAnimationController {
 			_prerotated.angle = _sprite.angle;
 		}
 	}
-}
+}

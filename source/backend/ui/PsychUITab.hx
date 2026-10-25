@@ -86,4 +86,4 @@ class PsychUITab extends FlxSprite
 		menu.camera = v;
 		return super.set_camera(v);
 	}
-}
+}

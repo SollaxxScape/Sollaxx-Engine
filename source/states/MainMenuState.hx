@@ -18,8 +18,8 @@ enum MainMenuColumn
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '2.2O92526a';
-	public static var SollaxxEngineVersion:String = '2.2O92526a';
+	public static var psychEngineVersion:String = '2.2A102526b';
+	public static var SollaxxEngineVersion:String = '2.2A102526b';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 
@@ -38,7 +38,6 @@ class MainMenuState extends MusicBeatState
 	var rightOption:String = 'options';
 
 	var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
-	var middle:FlxSprite = new FlxSprite(0).loadGraphic(Paths.image('menuMid'));
 
 	var grid:FlxBackdrop = new FlxBackdrop(FlxGridOverlay.createGrid(95, 80, 190, 160, true, 0x33FC03DB, 0x0));
 
@@ -90,13 +89,6 @@ class MainMenuState extends MusicBeatState
 		add(grid);
 		grid.scrollFactor.set(0, 0.07);
 
-		middle.scrollFactor.x = 0;
-		middle.scrollFactor.y = 0;
-		middle.setGraphicSize(Std.int(middle.width * 0.75));
-		middle.updateHitbox();
-		middle.screenCenter();
-		middle.antialiasing = true;
-		add(middle);
 
 		camFollow = new FlxObject(0, 0, 1, 1);
 		add(camFollow);
@@ -119,13 +111,13 @@ class MainMenuState extends MusicBeatState
 			rightItem.x -= rightItem.width;
 		}
 
-		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' 0.2.8");
+		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' 0.6.4");
 		psychVer.scrollFactor.set();
 		psychVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		psychVer.antialiasing = true;
 		add(psychVer);
 
-		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "Sollaxx Engine V2.2 Alpha", 12);
+		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "Sollaxx Engine V2.2 Beta", 12);
 		SollaxxVer.scrollFactor.set();
 		SollaxxVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		SollaxxVer.antialiasing = true;

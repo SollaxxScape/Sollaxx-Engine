@@ -77,4 +77,4 @@ class AdvancedSettingsSubState extends BaseOptionsMenu
 	{
 	}
 	#end
-}
+}

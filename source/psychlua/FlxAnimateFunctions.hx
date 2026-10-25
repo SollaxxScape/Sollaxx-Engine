@@ -73,4 +73,4 @@ class FlxAnimateFunctions
 		});
 	}
 }
-#end
+#end

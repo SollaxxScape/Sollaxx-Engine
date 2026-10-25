@@ -58,6 +58,9 @@ class FileDialogHandler extends FlxBasic
 		this._dialogMode = OPEN;
 		_startUp(onComplete, onCancel, onError);
 		if(filter == null) filter = [new FileFilter('JSON', 'json')];
+		#if mac
+		filter = [];
+		#end
 
 		removeEvents();
 		_currentEvent = onLoadComplete;
@@ -239,4 +242,4 @@ class FileReferenceCustom extends FileReference
 
 		return false;
 	}
-}
+}

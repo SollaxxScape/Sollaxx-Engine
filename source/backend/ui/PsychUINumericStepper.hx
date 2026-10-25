@@ -203,4 +203,4 @@ class PsychUINumericStepper extends PsychUIInputText
 		super.setGraphicSize(width, height);
 		behindText.setGraphicSize(width - 32, height - 2);
 	}
-}
+}
