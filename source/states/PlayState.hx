@@ -679,7 +679,7 @@ class PlayState extends MusicBeatState
 		judgementCounter.borderSize = 1.25;
 		uiGroup.add(judgementCounter);
 
-		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2A102526b", 16);
+		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2A102626b", 16);
 		versionTxt.antialiasing = true;
 		versionTxt.setFormat(Paths.font("vcr.ttf"), 15, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionTxt.scrollFactor.set();

@@ -52,6 +52,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	var nextIndex:Int = 0;
 	var lastSoundTime:Float = -1;
 	var handedOver:Bool = false;
+	var transCam:FlxCamera;
 
 	public function new(duration:Float, isTransIn:Bool)
 	{
@@ -62,9 +63,13 @@ class CustomFadeTransition extends MusicBeatSubstate {
 
 	override function create()
 	{
-		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
-		var width:Int = Std.int(FlxG.width / Math.max(camera.zoom, 0.001));
-		var height:Int = Std.int(FlxG.height / Math.max(camera.zoom, 0.001));
+		// The stickers live on their own camera layer on top of everything, so state camera zooms/shakes never touch them
+		transCam = new FlxCamera();
+		transCam.bgColor = FlxColor.TRANSPARENT;
+		FlxG.cameras.add(transCam, false);
+		cameras = [transCam];
+		var width:Int = FlxG.width;
+		var height:Int = FlxG.height;
 
 		config = loadConfig();
 
@@ -225,6 +230,14 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			}
 		}
 		return list;
+	}
+
+	override function destroy()
+	{
+		if(transCam != null && FlxG.cameras.list.contains(transCam))
+			FlxG.cameras.remove(transCam, true);
+		transCam = null;
+		super.destroy();
 	}
 
 	// Don't delete this

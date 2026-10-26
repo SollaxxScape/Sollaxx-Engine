@@ -326,6 +326,7 @@ class TitleState extends MusicBeatState
 	}
 
 	var transitioning:Bool = false;
+	var enterPressed:Bool = false;
 	private static var playJingle:Bool = false;
 	
 	var newTitle:Bool = false;
@@ -400,6 +401,7 @@ class TitleState extends MusicBeatState
 				
 				if(titleText != null) titleText.animation.play('press');
 
+				enterPressed = true;
 				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 				FlxG.camera.zoom += 0.090;
@@ -536,7 +538,9 @@ class TitleState extends MusicBeatState
 	override function beatHit()
 	{
 		super.beatHit();
-		
+
+		if(enterPressed) return; // stop beating once ENTER was pressed
+
 		if(curBeat % 1 == 0)
 			FlxG.camera.zoom += 0.035;
 
@@ -658,7 +662,7 @@ class TitleState extends MusicBeatState
 			{
 				remove(psychSpr);
 				remove(credGroup);
-				FlxG.camera.flash(FlxColor.WHITE, 2);
+				FlxG.camera.flash(FlxColor.WHITE, 4);
 
 				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;
 				if (easteregg == null) easteregg = '';

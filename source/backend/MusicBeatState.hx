@@ -24,7 +24,7 @@ class MusicBeatState extends FlxState
 	}
 
 	public static var windowNameSuffix:String = "";
-	public static var windowNamePrefix:String = "Friday Night Funkin': Sollaxx Engine";
+	public static var windowNamePrefix:String = "Friday Night Funkin': SollVerse";
 
 	var _psychCameraInitialized:Bool = false;
 
@@ -32,8 +32,15 @@ class MusicBeatState extends FlxState
 	public static function getVariables()
 		return getState().variables;
 
+	static var firstStateCreated:Bool = false;
+
 	override function create() {
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
+		if(!firstStateCreated) // loading the game: no icon transition after the flixel logo
+		{
+			skip = true;
+			firstStateCreated = true;
+		}
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 
 		if(!_psychCameraInitialized) initPsychCamera();
@@ -41,7 +48,7 @@ class MusicBeatState extends FlxState
 		super.create();
 
 		if(!skip) {
-			openSubState(new CustomFadeTransition(0.4, true));
+			openSubState(new CustomFadeTransition(0.6, true));
 		}
 		FlxTransitionableState.skipNextTransOut = false;
 		timePassedOnState = 0;
