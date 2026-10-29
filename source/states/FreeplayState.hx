@@ -1,5 +1,6 @@
 package states;
 
+import backend.SongPreloader;
 import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
@@ -467,6 +468,10 @@ class FreeplayState extends MusicBeatState
 		else if (controls.ACCEPT && !player.playingMusic && selectable)
 		{
 			persistentUpdate = false;
+
+			// Start preloading every song of Freeplay (base game + mods) in the background
+			var preloadList:Array<PreloadSong> = [for (s in songs) {folder: s.folder, song: s.songName}];
+			SongPreloader.start(preloadList, curSelected);
 			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
 			var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
 			

@@ -1,0 +1,6 @@
+{
+	"enabled": true,
+	"maxMemoryMB": 1024,
+	"includeVoices": false,
+	"startDelay": 2
+}

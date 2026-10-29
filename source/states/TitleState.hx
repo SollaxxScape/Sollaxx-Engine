@@ -289,7 +289,7 @@ class TitleState extends MusicBeatState
 
 		credTextShit.visible = false;
 
-		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/logo'));
+		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/icon'));
 		add(psychSpr);
 		psychSpr.visible = false;
 		psychSpr.scale.x = 0.4;
@@ -346,7 +346,7 @@ class TitleState extends MusicBeatState
 		gradientBar.y = FlxG.height - gradientBar.height;
 		
 		if (skippedIntro)
-			logoBl.angle = Math.sin(gradientTimer / 270) * 5 / (ClientPrefs.data.framerate / 60);
+			logoBl.angle = Math.sin(gradientTimer / 270) * 2 / (ClientPrefs.data.framerate / 60);
 
 		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || controls.ACCEPT;
 
@@ -402,7 +402,7 @@ class TitleState extends MusicBeatState
 				if(titleText != null) titleText.animation.play('press');
 
 				enterPressed = true;
-				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
+				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 0.75);
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 				FlxG.camera.zoom += 0.090;
 				
@@ -572,7 +572,9 @@ class TitleState extends MusicBeatState
 				case 5:
 					deleteCoolText();
 				case 6:
-					createCoolText(['Made for this mod'], -40);
+					createCoolText(['An improvemed engine'], -40);
+				case 7:
+					addMoreText('Made for FNF', -40);
 				case 8:
 					psychSpr.y = 750;
 					psychSpr.visible = true;
@@ -587,11 +589,11 @@ class TitleState extends MusicBeatState
 				case 13:
 					deleteCoolText();
 				case 14:
-					addMoreText('Friday Night Funkin');
+					addMoreText('FNF');
 				case 15:
-					addMoreText('SollVerse');
+					addMoreText('Sollaxx');
 				case 16:
-					addMoreText('The Full-Ass Mod'); // credTextShit.text += '\nFunkin';
+					addMoreText('Engine'); // credTextShit.text += '\nFunkin';
 
 				case 17:
 					skipIntro();

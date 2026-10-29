@@ -21,7 +21,7 @@ import states.TitleState;
 	public var autoPause:Bool = true;
 	public var antialiasing:Bool = true;
 	public var noteSkin:String = 'Default';
-	public var splashSkin:String = 'Diamond';
+	public var splashSkin:String = 'Vanilla';
 	public var splashAlpha:Float = 1;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
@@ -56,7 +56,7 @@ import states.TitleState;
 	public var stripedBar:Bool = false;
 	public var playingBar:Bool = true;
 	public var hitsoundVolume:Float = 0;
-	public var pauseMusic:String = 'Tea Time';
+	public var pauseMusic:String = 'Breakfast';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [

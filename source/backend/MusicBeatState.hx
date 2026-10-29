@@ -24,7 +24,7 @@ class MusicBeatState extends FlxState
 	}
 
 	public static var windowNameSuffix:String = "";
-	public static var windowNamePrefix:String = "Friday Night Funkin': SollVerse";
+	public static var windowNamePrefix:String = "Friday Night Funkin': Sollaxx Engine";
 
 	var _psychCameraInitialized:Bool = false;
 
@@ -68,6 +68,7 @@ class MusicBeatState extends FlxState
 	override function update(elapsed:Float)
 	{
 		//everyStep();
+		SongPreloader.flush();
 		var oldStep:Int = curStep;
 		timePassedOnState += elapsed;
 

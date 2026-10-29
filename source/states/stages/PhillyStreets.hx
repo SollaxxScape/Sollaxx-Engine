@@ -205,7 +205,16 @@ class PhillyStreets extends BaseStage
 				}
 			}
 		}
+
+		// Without videos the Darnell cutscene starts before the stage is fully created, so it waited for this point
+		if(startCutsceneAfterCreate)
+		{
+			startCutsceneAfterCreate = false;
+			darnellCutscene();
+		}
 	}
+
+	var startCutsceneAfterCreate:Bool = false;
 
 	#if VIDEOS_ALLOWED
 	var videoEnded:Bool = false;
@@ -234,7 +243,10 @@ class PhillyStreets extends BaseStage
 			switch (songName)
 			{
 				case 'darnell':
-					darnellCutscene();
+					if(spraycan == null) // stage objects don't exist yet (createPost hasn't run), try again once it has
+						startCutsceneAfterCreate = true;
+					else
+						darnellCutscene();
 			}
 		}
 	}

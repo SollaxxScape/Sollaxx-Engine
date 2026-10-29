@@ -1,161 +1,163 @@
 package backend;
-#if funkin.vis 
-import funkin.vis._internal.html5.AnalyzerNode;
-import funkin.vis.audioclip.frontends.LimeAudioClip;
-import funkin.vis.dsp.SpectralAnalyzer;
-import funkin.vis.dsp.RecentPeakFinder;
-import grig.audio.FFT;
-import grig.audio.FFTVisualization;
-import lime.media.AudioSource;
 
-using grig.audio.lime.UInt8ArrayTools;
-#end
+import lime.media.AudioBuffer;
 
-class SpectralAnalyzerEx #if funkin.vis extends SpectralAnalyzer #end
+typedef VizLevel =
 {
-	#if funkin.vis
-	var _levels:Array<Bar> = [];
-	public function recycledLevels():Array<Bar>
+	var value:Float;
+	var peak:Float;
+}
+
+/**
+ * Self-contained spectrum analyzer for the A-Bot speaker visualizer (Nene / Pico stages).
+ * It reads the decoded audio of the song's instrumental (FlxG.sound.music) at the current playback position
+ * and measures a few frequency bands with the Goertzel algorithm. No funkin.vis / grig.audio libraries needed.
+ */
+class SpectralAnalyzerEx
+{
+	// Analysis window in samples. Bigger = better bass resolution (never goes below 1024)
+	public var fftN:Int = 1024;
+
+	// Quietest / loudest level (in dB) that is mapped to 0 / 1
+	public var minDb:Float = -60;
+	public var maxDb:Float = -20;
+
+	var sound:FlxSound;
+	var barCount:Int;
+	var maxDelta:Float;
+	var peakHold:Int;
+
+	var levels:Array<VizLevel> = [];
+	var barFrequencies:Array<Array<Float>> = [];
+	var peakAge:Array<Int> = [];
+	var samples:Array<Float> = [];
+	var window:Array<Float> = [];
+	var windowSize:Int = 0;
+
+	public function new(?sound:FlxSound, barCount:Int = 7, maxDelta:Float = 0.1, peakHold:Int = 40)
 	{
-		#if web
-		var amplitudes:Array<Float> = htmlAnalyzer.getFloatFrequencyData();
+		this.sound = sound;
+		this.barCount = barCount;
+		this.maxDelta = maxDelta;
+		this.peakHold = peakHold;
 
-		for (i in 0...bars.length) {
-			var bar = bars[i];
-			var binLo = bar.binLo;
-			var binHi = bar.binHi;
-
-			var value:Float = minDb;
-			for (j in (binLo + 1)...(binHi)) {
-				value = Math.max(value, amplitudes[Std.int(j)]);
-			}
-
-			// this isn't for clamping, it's to get a value
-			// between 0 and 1!
-			value = normalizedB(value);
-			bar.recentValues.push(value);
-			var recentPeak = bar.recentValues.peak;
-
-			if(_levels[i] != null)
-			{
-				_levels[i].value = value;
-				_levels[i].peak = recentPeak;
-			}
-			else _levels.push({value: value, peak: recentPeak});
-		}
-
-		return _levels;
-		#else
-		var numOctets = Std.int(audioSource.buffer.bitsPerSample / 8);
-		var wantedLength = fftN * numOctets * audioSource.buffer.channels;
-		var startFrame = audioClip.currentFrame;
-		startFrame -= startFrame % numOctets;
-		var segment = audioSource.buffer.data.subarray(startFrame, min(startFrame + wantedLength, audioSource.buffer.data.length));
-		var signal = recycledInterleaved(segment, audioSource.buffer.bitsPerSample);
-
-		if (audioSource.buffer.channels > 1)
+		// Log spaced bands between 50 Hz and 7 kHz, 3 measuring points inside every band
+		var lowest:Float = 50;
+		var highest:Float = 7000;
+		for (i in 0...barCount)
 		{
-			var mixed = [];
-			mixed.resize(Std.int(signal.length / audioSource.buffer.channels));
-			for (i in 0...mixed.length)
-			{
-				mixed[i] = 0.0;
-				for (c in 0...audioSource.buffer.channels)
-					mixed[i] += 0.7 * signal[i*audioSource.buffer.channels+c];
-
-				mixed[i] *= blackmanWindow[i];
-			}
-			signal = mixed;
+			var lo:Float = lowest * Math.pow(highest / lowest, i / barCount);
+			var hi:Float = lowest * Math.pow(highest / lowest, (i + 1) / barCount);
+			barFrequencies.push([lo * Math.pow(hi / lo, 0.2), lo * Math.pow(hi / lo, 0.5), lo * Math.pow(hi / lo, 0.8)]);
+			levels.push({value: 0, peak: 0});
+			peakAge.push(0);
 		}
+	}
 
-		var range = 16;
-		var freqs = fft.calcFreq(signal);
-		var bars = vis.makeLogGraph(freqs, barCount, Math.floor(maxDb - minDb), range);
-
-		if (bars.length > barHistories.length)
-			barHistories.resize(bars.length);
-
-		_levels.resize(bars.length);
-		for (i in 0...bars.length)
+	public function recycledLevels():Array<VizLevel>
+	{
+		var buffer:AudioBuffer = null;
+		if(sound != null && sound.playing)
 		{
-			if (barHistories[i] == null)
-			{
-				barHistories[i] = new RecentPeakFinder();
-				trace('created barHistories[$i]');
-			}
-			var recentValues = barHistories[i];
-			var value = bars[i] / range;
-
-			// slew limiting
-			var lastValue = recentValues.lastValue;
-			if (maxDelta > 0.0)
-			{
-				var delta = clamp(value - lastValue, -1 * maxDelta, maxDelta);
-				value = lastValue + delta;
-			}
-			recentValues.push(value);
-
-			var recentPeak = recentValues.peak;
-
-			if(_levels[i] != null)
-			{
-				_levels[i].value = value;
-				_levels[i].peak = recentPeak;
-			}
-			else _levels[i] = {value: value, peak: recentPeak};
+			@:privateAccess
+			if(sound._sound != null) buffer = sound._sound.__buffer;
 		}
-		return _levels;
-		#end
-	}
 
-	var _buffer:Array<Float> = [];
-	function recycledInterleaved(data:lime.utils.UInt8Array, bitsPerSample:Int):Array<Float>
-	{
-		switch(bitsPerSample)
+		if(buffer == null || buffer.data == null || buffer.channels < 1 || buffer.bitsPerSample != 16)
 		{
-			case 8:
-				_buffer.resize(data.length);
-				for (i in 0...data.length)
-					_buffer[i] = data[i] / 128.0;
-
-			case 16:
-				_buffer.resize(Std.int(data.length / 2));
-				for (i in 0..._buffer.length)
-					_buffer[i] = data.getInt16(i * 2) / 32767.0;
-
-			case 24:
-				_buffer.resize(Std.int(data.length / 3));
-				for (i in 0..._buffer.length)
-					_buffer[i] = data.getInt24(i * 3) / 8388607.0;
-
-			case 32:
-				_buffer.resize(Std.int(data.length / 4));
-				for (i in 0..._buffer.length)
-					_buffer[i] = data.getInt32(i * 4) / 2147483647.0;
-
-			default: trace('Unknown integer audio format');
+			fall();
+			return levels;
 		}
-		return _buffer;
+
+		var n:Int = Std.int(Math.max(fftN, 1024));
+		if(n != windowSize)
+		{
+			windowSize = n;
+			window = [for (i in 0...n) 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))]; // Hann window
+			samples = [for (i in 0...n) 0.0];
+		}
+
+		var channels:Int = buffer.channels;
+		var totalFrames:Int = Std.int(buffer.data.length / (2 * channels));
+		var start:Int = Std.int((sound.time / 1000) * buffer.sampleRate);
+		if(start < 0) start = 0;
+		if(start + n > totalFrames) start = totalFrames - n;
+		if(start < 0)
+		{
+			fall();
+			return levels;
+		}
+
+		// Mix down to mono (16 bit samples)
+		var data = buffer.data;
+		for (i in 0...n)
+		{
+			var sum:Float = 0;
+			var byteIndex:Int = (start + i) * channels * 2;
+			for (c in 0...channels)
+			{
+				var value:Int = data[byteIndex] | (data[byteIndex + 1] << 8);
+				if(value >= 32768) value -= 65536;
+				sum += value / 32768.0;
+				byteIndex += 2;
+			}
+			samples[i] = (sum / channels) * window[i];
+		}
+
+		var rate:Float = buffer.sampleRate;
+		for (bar in 0...barCount)
+		{
+			var magnitude:Float = 0;
+			for (freq in barFrequencies[bar])
+				magnitude = Math.max(magnitude, goertzel(freq, rate, n));
+
+			var db:Float = 20 * Math.log(magnitude + 0.000000001) / Math.log(10);
+			var target:Float = (db - minDb) / (maxDb - minDb);
+			target = target < 0 ? 0 : (target > 1 ? 1 : target);
+
+			// Rises fast, falls slowly
+			var level:VizLevel = levels[bar];
+			var delta:Float = target - level.value;
+			var maxRise:Float = maxDelta * 3;
+			delta = delta > maxRise ? maxRise : (delta < -maxDelta ? -maxDelta : delta);
+			level.value += delta;
+
+			if(level.value >= level.peak)
+			{
+				level.peak = level.value;
+				peakAge[bar] = 0;
+			}
+			else if(++peakAge[bar] > peakHold)
+				level.peak = Math.max(level.value, level.peak - maxDelta);
+		}
+		return levels;
 	}
 
-	@:generic
-	static inline function min<T:Float>(x:T, y:T):T
+	// Nothing is playing (or the audio can't be read): let the bars settle down
+	function fall()
 	{
-		return x > y ? y : x;
+		for (i in 0...levels.length)
+		{
+			levels[i].value = Math.max(0, levels[i].value - maxDelta);
+			levels[i].peak = levels[i].value;
+		}
 	}
-	
-	@:generic
-	static inline function clamp<T:Float>(val:T, min:T, max:T):T
+
+	// Amplitude of one frequency inside the (windowed) samples, 1.0 = a full scale sine
+	function goertzel(frequency:Float, sampleRate:Float, n:Int):Float
 	{
-		return val <= min ? min : val >= max ? max : val;
+		var k:Float = (n * frequency) / sampleRate;
+		var coeff:Float = 2 * Math.cos(2 * Math.PI * k / n);
+		var s1:Float = 0;
+		var s2:Float = 0;
+		for (i in 0...n)
+		{
+			var s:Float = samples[i] + coeff * s1 - s2;
+			s2 = s1;
+			s1 = s;
+		}
+		var power:Float = s1 * s1 + s2 * s2 - coeff * s1 * s2;
+		if(power < 0) power = 0;
+		return Math.sqrt(power) / (n * 0.25); // Hann window has an average gain of 0.5, /2 for the one sided spectrum
 	}
-	#else
-	//Just to avoid errors until they review my PR
-	public var fftN:Int = 0;
-	public function new(?v1:Dynamic, ?v2:Dynamic, ?v3:Dynamic, ?v4:Dynamic) {}
-	public function recycledLevels():Array<Dynamic>
-	{
-		return [{value: 0, peak: 0}];
-	}
-	#end
-}
+}

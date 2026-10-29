@@ -55,7 +55,7 @@ class MenuCharacter extends FlxSprite
 				if (!Assets.exists(path))
 				#end
 				{
-					path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+					path = Paths.getPath('images/menucharacters/' + DEFAULT_CHARACTER + '.json', TEXT); //If a character couldn't be found, change him to BF just to prevent a crash
 					color = FlxColor.BLACK;
 					alpha = 0.6;
 				}
@@ -74,8 +74,16 @@ class MenuCharacter extends FlxSprite
 					trace('Error loading menu character file of "$character": $e');
 				}
 
+				if(charFile == null || charFile.image == null)
+				{
+					// Menu character file is missing or broken: hide the character instead of crashing
+					trace('Menu character "' + character + '" could not be loaded, hiding it');
+					visible = false;
+					return;
+				}
+
 				frames = Paths.getSparrowAtlas('menucharacters/' + charFile.image);
-				animation.addByPrefix('idle', charFile.idle_anim, 24);
+				if(charFile.idle_anim != null) animation.addByPrefix('idle', charFile.idle_anim, 24);
 
 				var confirmAnim:String = charFile.confirm_anim;
 				if(confirmAnim != null && confirmAnim.length > 0 && confirmAnim != charFile.idle_anim)
@@ -86,13 +94,15 @@ class MenuCharacter extends FlxSprite
 				}
 				flipX = (charFile.flipX == true);
 
-				if(charFile.scale != 1)
+				var charScale:Float = Reflect.hasField(charFile, 'scale') ? charFile.scale : 1;
+				if(charScale != 1)
 				{
-					scale.set(charFile.scale, charFile.scale);
+					scale.set(charScale, charScale);
 					updateHitbox();
 				}
-				offset.set(charFile.position[0], charFile.position[1]);
-				animation.play('idle');
+				if(charFile.position != null && charFile.position.length >= 2)
+					offset.set(charFile.position[0], charFile.position[1]);
+				if(animation.getByName('idle') != null) animation.play('idle');
 
 				antialiasing = (charFile.antialiasing != false && ClientPrefs.data.antialiasing);
 		}
