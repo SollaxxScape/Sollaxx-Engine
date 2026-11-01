@@ -48,7 +48,7 @@ Join the discord server for the updates/announcements and support
 <a href=https://discord.gg/CN7WTE5Mbt>Discord Server Link</a>
 
 # Credits
-* SollaxxScape - Main Developer/Programmer
+* SollaxxScape - Main Developer/Programmer (I am a solo fucking developer)
 * Artemie - Artist
 * PLACEHOLDER_NAME - for creating Pause Menu theme for the engine 
 * BuilderEric14 - Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta
