@@ -138,6 +138,30 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			'judgeZoom',
 			BOOL);
 		addOption(option);
+
+		var option:Option = new Option('Hide Side Status Bar',
+			"If checked, hides the Judgement Counter on the\nleft side of the screen while playing.",
+			'hideSideStatusBar',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Icon Transition Style:',
+			"How the icons cover the screen between menus.\nPop, Waves, Ripple, Diagonal, Rain, Checkerboard or Random.",
+			'transitionStyle',
+			STRING,
+			CustomFadeTransition.styles);
+		addOption(option);
+
+		var option:Option = new Option('Icon Transition Speed',
+			"How fast the icon transition is.\n(1 = normal, higher is faster)",
+			'transitionSpeed',
+			FLOAT);
+		option.scrollSpeed = 1.6;
+		option.minValue = 0.5;
+		option.maxValue = 2.5;
+		option.changeValue = 0.1;
+		option.decimals = 1;
+		addOption(option);
 		
 		var option:Option = new Option('Time Text Grow on Beat',
 			"If unchecked, disables the time text growing every beat during a song.",

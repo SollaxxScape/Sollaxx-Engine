@@ -30,11 +30,20 @@ typedef StickerConfig =
 /**
  * V-Slice style sticker transition (replaces the fade).
  *
- * Leaving a state covers the screen with icons that pop up one by one, entering a state pops the same icons away again.
+ * Leaving a state covers the screen with icons, entering a state clears them away again.
  * - Base game: icons come from images/Icons (then images/icons)
  * - Mods: icons come from the mod you're in (mods/<mod>/images/icons or Icons)
  * - Every icon is randomly the normal or the losing icon
  * - Every icon sits on a solid tile, the tiles cover the whole screen, so you never see the old screen between the icons
+ *
+ * The style is picked in Options > Visuals ("Icon Transition Style"), the speed with "Icon Transition Speed":
+ *  Pop          icons pop up at random
+ *  Waves        a wavy front sweeps from the left to the right
+ *  Ripple       icons pop outwards from the middle of the screen
+ *  Diagonal     a swipe from the top left to the bottom right
+ *  Rain         icons drop from the top, column by column, and bounce into place
+ *  Checkerboard every other icon first, then the rest fills in
+ *  Random       a different style every time
  *
  * Every pop plays a random sound out of a folder. Defaults to
  *   assets/shared/sounds/stickersounds/keys/KeyClick1.ogg ... KeyClick9.ogg
@@ -45,18 +54,25 @@ typedef StickerConfig =
 class CustomFadeTransition extends MusicBeatSubstate {
 	public static var finishCallback:Void->Void;
 
-	// The sticker layout is kept so the next state can pop the exact same stickers away
+	// Styles that can be picked in the options menu ("Random" picks one of the others every time)
+	public static var styles:Array<String> = ['Pop', 'Waves', 'Ripple', 'Diagonal', 'Rain', 'Checkerboard', 'Random'];
+
+	// The sticker layout (and style) is kept so the next state can clear away the exact same stickers
 	static var lastLayout:Array<StickerData> = null;
+	static var lastStyle:String = 'Pop';
 
 	// Color of the tiles behind the icons
 	static var tileColor:FlxColor = 0xFF000000;
 
 	var isTransIn:Bool = false;
 	var duration:Float;
+	var style:String = 'Pop';
 
 	var data:Array<StickerData> = [];
 	var stickers:Array<HealthIcon> = [];
 	var backings:Array<FlxSprite> = [];
+	var iconBaseY:Array<Float> = [];
+	var tileBaseY:Array<Float> = [];
 	var config:StickerConfig;
 	var timeIn:Float = 0;
 	var nextIndex:Int = 0;
@@ -83,8 +99,17 @@ class CustomFadeTransition extends MusicBeatSubstate {
 
 		config = loadConfig();
 
-		if(isTransIn && lastLayout != null) data = lastLayout;
-		else data = lastLayout = buildLayout(width, height);
+		if(isTransIn && lastLayout != null)
+		{
+			data = lastLayout;
+			style = lastStyle;
+		}
+		else
+		{
+			style = pickStyle();
+			lastStyle = style;
+			data = lastLayout = buildLayout(width, height, style);
+		}
 		data.sort(function(a:StickerData, b:StickerData) return (a.order < b.order) ? -1 : 1);
 
 		// Backing tiles first, so every icon is drawn above every tile
@@ -100,8 +125,13 @@ class CustomFadeTransition extends MusicBeatSubstate {
 				tile.visible = isTransIn;
 				add(tile);
 				backings.push(tile);
+				tileBaseY.push(tile.y);
 			}
-			else backings.push(null);
+			else
+			{
+				backings.push(null);
+				tileBaseY.push(0);
+			}
 		}
 
 		for (d in data)
@@ -115,6 +145,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			icon.visible = isTransIn;
 			add(icon);
 			stickers.push(icon);
+			iconBaseY.push(icon.y);
 		}
 
 		super.create();
@@ -125,7 +156,8 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		if(handedOver) return;
 
 		timeIn += elapsed;
-		var total:Float = Math.max(duration, 0.1) * 1.5;
+		var speed:Float = Math.max(0.25, ClientPrefs.data.transitionSpeed);
+		var total:Float = (Math.max(duration, 0.1) * 1.5) / speed;
 		var lastPop:Float = total * 0.8;
 		while(nextIndex < data.length && timeIn >= data[nextIndex].order * lastPop)
 		{
@@ -133,8 +165,9 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			nextIndex++;
 		}
 
-		// Wait until the last sticker finished popping before handing over
-		if(nextIndex >= data.length && timeIn >= Math.max(total, lastPop + 0.2))
+		// Wait until the last sticker finished its animation before handing over
+		var settle:Float = (style == 'Rain') ? 0.55 : 0.4;
+		if(nextIndex >= data.length && timeIn >= Math.max(total, lastPop + settle))
 		{
 			handedOver = true;
 			if(isTransIn)
@@ -157,22 +190,62 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		var icon:HealthIcon = stickers[index];
 		var tile:FlxSprite = backings[index];
 		var d:StickerData = data[index];
+		var rain:Bool = (style == 'Rain');
 		playClick();
 
 		if(isTransIn)
 		{
-			FlxTween.tween(icon.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) icon.visible = false});
-			if(tile != null)
-				FlxTween.tween(tile.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) tile.visible = false});
+			if(rain)
+			{
+				// Everything flies back up
+				FlxTween.tween(icon, {y: iconBaseY[index] - 900}, 0.3, {ease: FlxEase.quadIn, onComplete: function(_) icon.visible = false});
+				if(tile != null)
+					FlxTween.tween(tile, {y: tileBaseY[index] - 900}, 0.3, {ease: FlxEase.quadIn, onComplete: function(_) tile.visible = false});
+			}
+			else
+			{
+				FlxTween.tween(icon.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) icon.visible = false});
+				if(tile != null)
+					FlxTween.tween(tile.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) tile.visible = false});
+			}
 		}
 		else
 		{
 			icon.visible = true;
-			FlxTween.tween(icon.scale, {x: d.scale, y: d.scale}, 0.15, {ease: FlxEase.backOut});
-			if(tile != null)
+			if(tile != null) tile.visible = true;
+
+			if(rain)
 			{
-				tile.visible = true;
-				FlxTween.tween(tile.scale, {x: 1, y: 1}, 0.1, {ease: FlxEase.quadOut});
+				// Drop from above the screen and bounce into place
+				icon.scale.set(d.scale, d.scale);
+				icon.y = iconBaseY[index] - 900;
+				FlxTween.tween(icon, {y: iconBaseY[index]}, 0.45, {ease: FlxEase.bounceOut});
+				if(tile != null)
+				{
+					tile.scale.set(1, 1);
+					tile.y = tileBaseY[index] - 900;
+					FlxTween.tween(tile, {y: tileBaseY[index]}, 0.45, {ease: FlxEase.bounceOut});
+				}
+			}
+			else
+			{
+				var time:Float = 0.15;
+				var ease:Float->Float = FlxEase.backOut;
+				switch(style)
+				{
+					case 'Waves':
+						time = 0.35;
+						ease = FlxEase.elasticOut;
+					case 'Ripple':
+						time = 0.22;
+					case 'Checkerboard':
+						time = 0.28;
+						ease = FlxEase.bounceOut;
+					default:
+				}
+				FlxTween.tween(icon.scale, {x: d.scale, y: d.scale}, time, {ease: ease});
+				if(tile != null)
+					FlxTween.tween(tile.scale, {x: 1, y: 1}, 0.1, {ease: FlxEase.quadOut});
 			}
 		}
 	}
@@ -185,6 +258,19 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		var number:Int = FlxG.random.int(1, config.soundCount);
 		var snd = Paths.returnSound('sounds/' + config.soundFolder + '/' + config.soundPrefix + number, null, true, false);
 		if(snd != null) FlxG.sound.play(snd, config.volume * FlxG.random.float(0.7, 1));
+	}
+
+	static function pickStyle():String
+	{
+		var chosen:String = ClientPrefs.data.transitionStyle;
+		if(chosen == null || !styles.contains(chosen)) chosen = 'Pop';
+		if(chosen == 'Random')
+		{
+			var options:Array<String> = styles.copy();
+			options.remove('Random');
+			chosen = FlxG.random.getObject(options);
+		}
+		return chosen;
 	}
 
 	static function loadConfig():StickerConfig
@@ -257,7 +343,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		return names;
 	}
 
-	static function buildLayout(width:Int, height:Int):Array<StickerData>
+	static function buildLayout(width:Int, height:Int, style:String):Array<StickerData>
 	{
 		var names:Array<String> = collectIconNames();
 		if(names.length < 1) return []; // nothing usable to show, no stickers
@@ -294,6 +380,35 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		var cellW:Float = width / cols;
 		var cellH:Float = height / rows;
 
+		// When a sticker pops (0 = first, 1 = last) depends on the style
+		var columnDelay:Array<Float> = [for (c in 0...cols + 1) FlxG.random.float(0, 0.55)];
+		var maxDistance:Float = Math.sqrt((width / 2) * (width / 2) + (height / 2) * (height / 2));
+		function orderFor(px:Float, py:Float):Float
+		{
+			var nx:Float = px / width;
+			var ny:Float = py / height;
+			var order:Float = FlxG.random.float(0, 1);
+			switch(style)
+			{
+				case 'Waves':
+					order = nx * 0.7 + 0.3 * (0.5 + 0.5 * Math.sin((py / cellH) * 1.1 + nx * 4)) + FlxG.random.float(0, 0.04);
+				case 'Ripple':
+					var dx:Float = px - width / 2;
+					var dy:Float = py - height / 2;
+					order = Math.sqrt(dx * dx + dy * dy) / maxDistance + FlxG.random.float(0, 0.05);
+				case 'Diagonal':
+					order = (nx + ny) / 2 + FlxG.random.float(0, 0.04);
+				case 'Rain':
+					var column:Int = Std.int(Math.max(0, Math.min(cols, Math.round(px / cellW - 0.5))));
+					order = columnDelay[column] + ny * 0.4 + FlxG.random.float(0, 0.04);
+				case 'Checkerboard':
+					var cell:Int = Math.floor(px / cellW) + Math.floor(py / cellH);
+					order = ((cell % 2 == 0) ? 0 : 0.5) + FlxG.random.float(0, 0.45);
+				default:
+			}
+			return Math.max(0, Math.min(0.999, order));
+		}
+
 		// One tile per cell. The tiles split the screen exactly (+2px overlap), so the whole screen is covered once they all popped
 		var cellChars:Array<String> = [];
 		for (r in 0...rows)
@@ -314,7 +429,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 					scale: FlxG.random.float(2.0, 2.6),
 					angle: FlxG.random.float(-25, 25),
 					losing: FlxG.random.bool(35),
-					order: FlxG.random.float(0, 1),
+					order: orderFor(centerX, centerY),
 					cx: centerX,
 					cy: centerY,
 					backW: cellW + 2,
@@ -328,14 +443,16 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		{
 			for (c in 0...cols + 1)
 			{
+				var cornerX:Float = c * cellW;
+				var cornerY:Float = r * cellH;
 				list.push({
 					char: nextChar([lastChar]),
-					x: (c * cellW) + FlxG.random.float(-20, 20),
-					y: (r * cellH) + FlxG.random.float(-20, 20),
+					x: cornerX + FlxG.random.float(-20, 20),
+					y: cornerY + FlxG.random.float(-20, 20),
 					scale: FlxG.random.float(2.0, 2.6),
 					angle: FlxG.random.float(-25, 25),
 					losing: FlxG.random.bool(35),
-					order: FlxG.random.float(0, 1),
+					order: orderFor(cornerX, cornerY),
 					cx: 0,
 					cy: 0,
 					backW: 0,

@@ -18,8 +18,8 @@ enum MainMenuColumn
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '2.2E102926b';
-	public static var SollaxxEngineVersion:String = '2.2E102926b';
+	public static var psychEngineVersion:String = '2.2A110126b';
+	public static var SollaxxEngineVersion:String = '2.2A110126b';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 

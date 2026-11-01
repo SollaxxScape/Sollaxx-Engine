@@ -21,7 +21,7 @@ import states.TitleState;
 	public var autoPause:Bool = true;
 	public var antialiasing:Bool = true;
 	public var noteSkin:String = 'Default';
-	public var splashSkin:String = 'Vanilla';
+	public var splashSkin:String = 'Diamond';
 	public var splashAlpha:Float = 1;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
@@ -56,7 +56,7 @@ import states.TitleState;
 	public var stripedBar:Bool = false;
 	public var playingBar:Bool = true;
 	public var hitsoundVolume:Float = 0;
-	public var pauseMusic:String = 'Breakfast';
+	public var pauseMusic:String = 'Tea Time';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [
@@ -96,6 +96,9 @@ import states.TitleState;
 	public var loadingScreen:Bool = true;
 	public var language:String = 'en-US';
 	public var vocalResyncIndicator:Bool = false;
+	public var hideSideStatusBar:Bool = false;
+	public var transitionStyle:String = 'Pop';
+	public var transitionSpeed:Float = 1;
 }
 
 class ClientPrefs {
@@ -195,6 +198,13 @@ class ClientPrefs {
 		for (key in Reflect.fields(data))
 			if (key != 'gameplaySettings' && Reflect.hasField(FlxG.save.data, key))
 				Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
+
+		// Undo of the old forced Vanilla default: saves that were moved over go back to the normal default
+		if(Reflect.hasField(FlxG.save.data, 'vanillaSplashDefault'))
+		{
+			if(data.splashSkin == 'Vanilla') data.splashSkin = defaultData.splashSkin;
+			Reflect.deleteField(FlxG.save.data, 'vanillaSplashDefault');
+		}
 		
 		if(Main.fpsVar != null) {
 			Main.fpsVar.showFPS = data.showFPS;
