@@ -66,10 +66,54 @@ class TitleState extends MusicBeatState
 	#end
 
 	var mustUpdate:Bool = false;
+	var updateCheckDone:Bool = true; // false while the online version is still being checked
 
 	var titleJSON:TitleData;
 
 	public static var updateVersion:String = '';
+
+	// Version format: <major>.<minor><letter><date><revision letter>, for example 2.2C110126b (date = month, day, year, the month can have 1 digit)
+	// The first letter is ignored. Only the version number, the date and the revision count, so 2.2A110226b is newer than 2.2C110126b.
+	// An online version that only says "2.2" never counts as an update for a 2.2 build.
+	static var versionPattern:EReg = ~/^(\d+)\.(\d+)([A-Za-z]?)(\d{5,6})?([A-Za-z]?)$/;
+
+	static function parseVersion(version:String):Array<Int>
+	{
+		if(version == null || !versionPattern.match(version.trim())) return null;
+
+		var date:String = versionPattern.matched(4);
+		var dateKey:Int = 0;
+		if(date != null && date.length >= 5)
+		{
+			var year:Int = Std.parseInt(date.substr(date.length - 2));
+			var day:Int = Std.parseInt(date.substr(date.length - 4, 2));
+			var month:Int = Std.parseInt(date.substr(0, date.length - 4));
+			dateKey = year * 10000 + month * 100 + day;
+		}
+
+		var revision:String = versionPattern.matched(5);
+		var revisionKey:Int = (revision == null || revision.length < 1) ? 0 : revision.toLowerCase().charCodeAt(0);
+
+		return [Std.parseInt(versionPattern.matched(1)), Std.parseInt(versionPattern.matched(2)), dateKey, revisionKey];
+	}
+
+	// true when the online version is newer than the one you are running
+	public static function isNewerVersion(online:String, current:String):Bool
+	{
+		var onlineParts:Array<Int> = parseVersion(online);
+		var currentParts:Array<Int> = parseVersion(current);
+
+		// Unknown format: fall back to "different = update"
+		if(onlineParts == null || currentParts == null)
+			return online != null && online.trim().length > 0 && online.trim() != current.trim();
+
+		for (i in 0...onlineParts.length)
+		{
+			if(onlineParts[i] > currentParts[i]) return true;
+			if(onlineParts[i] < currentParts[i]) return false;
+		}
+		return false; // same version
+	}
 
 	override public function create():Void
 	{
@@ -88,23 +132,26 @@ class TitleState extends MusicBeatState
 		#if CHECK_FOR_UPDATES
 		if(ClientPrefs.data.checkForUpdates && !closedState) {
 			trace('checking for update');
-			var http = new haxe.Http("https://raw.githubusercontent.com/LeonGamer10/FNF-SollaxxEngine/main/gitVersion.txt");
+			var http = new haxe.Http("https://raw.githubusercontent.com/SollaxxScape/Sollaxx-Engine/main/gitVersion.txt");
 
 			http.onData = function (data:String)
 			{
 				updateVersion = data.split('\n')[0].trim();
 				var curVersion:String = MainMenuState.SollaxxEngineVersion.trim();
 				trace('version online: ' + updateVersion + ', your version: ' + curVersion);
-				if(updateVersion != curVersion) {
-					trace('versions arent matching!');
+				if(isNewerVersion(updateVersion, curVersion)) {
+					trace('there is a newer version online!');
 					mustUpdate = true;
 				}
+				updateCheckDone = true;
 			}
 
 			http.onError = function (error) {
 				trace('error: $error');
+				updateCheckDone = true;
 			}
 
+			updateCheckDone = false;
 			http.request();
 		}
 		#end
@@ -194,7 +241,7 @@ class TitleState extends MusicBeatState
 		add(bg);
 
 		logoBl = new FlxSprite(titleJSON.titlex, titleJSON.titley);
-		#if Sollaxx_WATERMARKS logoBl.loadGraphic(Paths.image('titleLogoSE'));
+		#if Sollaxx_WATERMARKS logoBl.loadGraphic(Paths.image('icon'));
 		#else logoBl.loadGraphic(Paths.image('titleLogo'));
 		#end
 		//logo.x = 250;
@@ -289,7 +336,7 @@ class TitleState extends MusicBeatState
 
 		credTextShit.visible = false;
 
-		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/icon'));
+		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/logo'));
 		add(psychSpr);
 		psychSpr.visible = false;
 		psychSpr.scale.x = 0.4;
@@ -346,7 +393,7 @@ class TitleState extends MusicBeatState
 		gradientBar.y = FlxG.height - gradientBar.height;
 		
 		if (skippedIntro)
-			logoBl.angle = Math.sin(gradientTimer / 270) * 2 / (ClientPrefs.data.framerate / 60);
+			logoBl.angle = Math.sin(gradientTimer / 270) * 5 / (ClientPrefs.data.framerate / 60);
 
 		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || controls.ACCEPT;
 
@@ -402,7 +449,7 @@ class TitleState extends MusicBeatState
 				if(titleText != null) titleText.animation.play('press');
 
 				enterPressed = true;
-				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 0.75);
+				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 				FlxG.camera.zoom += 0.090;
 				
@@ -420,12 +467,7 @@ class TitleState extends MusicBeatState
 
 				new FlxTimer().start(1, function(tmr:FlxTimer)
 				{
-					if (mustUpdate) {
-						MusicBeatState.switchState(new OutdatedState());
-					} else {
-						MusicBeatState.switchState(new MainMenuState());
-					}
-					closedState = true;
+					goToNextState(0);
 				});
 				// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
 			}
@@ -534,6 +576,23 @@ class TitleState extends MusicBeatState
 	}
 
 	private var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
+	// After ENTER: the update window comes first (when there is an update), then the main menu.
+	// If the online version is still being checked, it waits for the answer (3 seconds at most).
+	function goToNextState(waited:Float)
+	{
+		if(!updateCheckDone && waited < 3)
+		{
+			new FlxTimer().start(0.1, function(tmr:FlxTimer) goToNextState(waited + 0.1));
+			return;
+		}
+
+		if (mustUpdate)
+			MusicBeatState.switchState(new OutdatedState());
+		else
+			MusicBeatState.switchState(new MainMenuState());
+		closedState = true;
+	}
+
 	public static var closedState:Bool = false;
 	override function beatHit()
 	{
@@ -557,7 +616,7 @@ class TitleState extends MusicBeatState
 				gfDance.animation.play('danceLeft');
 		}
 
-		if(!closedState) {
+			if(!closedState) {
 			sickBeats++;
 			switch (sickBeats)
 			{
@@ -565,8 +624,7 @@ class TitleState extends MusicBeatState
 					//FlxG.sound.music.stop();
 					FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
 					FlxG.sound.music.fadeIn(4, 0, 0.7);
-				case 2:
-					createCoolText(['Sollaxx Engine by'], 40);
+				createCoolText(['Sollaxx Engine by'], 40);
 				case 4:
 					addMoreText('SollaxxScape', 40);
 				case 5:
@@ -589,7 +647,7 @@ class TitleState extends MusicBeatState
 				case 13:
 					deleteCoolText();
 				case 14:
-					addMoreText('FNF');
+					addMoreText('Friday Night Funkin');
 				case 15:
 					addMoreText('Sollaxx');
 				case 16:
@@ -600,7 +658,6 @@ class TitleState extends MusicBeatState
 			}
 		}
 	}
-
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;
 	function skipIntro():Void

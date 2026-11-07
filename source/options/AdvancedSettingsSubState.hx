@@ -57,6 +57,12 @@ class AdvancedSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Discord Rich Presence',
+			"If checked, it'll enable Discord Rich Presence.",
+			'discordRPC',
+			BOOL);
+		addOption(option);
+
 		super();
 	}
 	
@@ -77,4 +83,4 @@ class AdvancedSettingsSubState extends BaseOptionsMenu
 	{
 	}
 	#end
-}
+}

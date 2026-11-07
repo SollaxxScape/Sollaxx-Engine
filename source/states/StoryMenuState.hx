@@ -471,6 +471,33 @@ class StoryMenuState extends MusicBeatState
 		updateText();
 	}
 
+	// Mod folder ('' = base game) of the week that will be selected when the Story Menu opens, used by the icon transition
+	public static function firstWeekFolder():String
+	{
+		var previousMod:String = Mods.currentModDirectory;
+		var result:String = null;
+		try
+		{
+			WeekData.reloadWeekFiles(true);
+			var visible:Array<WeekData> = [];
+			for (name in WeekData.weeksList)
+			{
+				var week:WeekData = WeekData.weeksLoaded.get(name);
+				var locked:Bool = (!week.startUnlocked && week.weekBefore.length > 0 && (!weekCompleted.exists(week.weekBefore) || !weekCompleted.get(week.weekBefore)));
+				if(!locked || !week.hiddenUntilUnlocked) visible.push(week);
+			}
+
+			if(visible.length > 0)
+			{
+				var index:Int = (curWeek >= visible.length) ? 0 : curWeek;
+				result = (visible[index].folder == null) ? '' : visible[index].folder;
+			}
+		}
+		catch(e:Dynamic) {}
+		Mods.currentModDirectory = previousMod;
+		return result;
+	}
+
 	function weekIsLocked(name:String):Bool {
 		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!weekCompleted.exists(leWeek.weekBefore) || !weekCompleted.get(leWeek.weekBefore)));

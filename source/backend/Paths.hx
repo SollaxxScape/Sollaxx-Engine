@@ -81,6 +81,22 @@ class Paths
 		#if !html5 openfl.Assets.cache.clear("songs"); #end
 	}
 
+	// Frees every loaded image (except the permanently excluded ones) from memory. Called when leaving a song or Freeplay.
+	// Only use it while the state that used the images is already destroyed, the next state loads what it needs again.
+	public static function deloadImages()
+	{
+		for (key in currentTrackedAssets.keys())
+		{
+			if (!dumpExclusions.contains(key))
+			{
+				destroyGraphic(currentTrackedAssets.get(key));
+				currentTrackedAssets.remove(key);
+			}
+		}
+		localTrackedAssets = [];
+		System.gc();
+	}
+
 	public static function freeGraphicsFromMemory()
 	{
 		var protectedGfx:Array<FlxGraphic> = [];
@@ -254,7 +270,7 @@ class Paths
 
 			if (bitmap == null)
 			{
-				trace('Bitmap not found: $file | key: $key');
+				trace('oh no its returning null NOOOO ($file)');
 				return null;
 			}
 		}
@@ -295,12 +311,11 @@ class Paths
 
 	inline static public function font(key:String)
 	{
-		var folderKey:String = Language.getFileTranslation('fonts/$key');
 		#if MODS_ALLOWED
-		var file:String = modFolders(folderKey);
+		var file:String = modsFont(key);
 		if(FileSystem.exists(file)) return file;
 		#end
-		return 'assets/$folderKey';
+		return 'assets/fonts/$key';
 	}
 
 	public static function fileExists(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null)
@@ -432,6 +447,9 @@ class Paths
 	#if MODS_ALLOWED
 	inline static public function mods(key:String = '')
 		return 'mods/' + key;
+
+	inline static public function modsFont(key:String)
+		return modFolders('fonts/' + key);
 
 	inline static public function modsJson(key:String)
 		return modFolders('data/' + key + '.json');

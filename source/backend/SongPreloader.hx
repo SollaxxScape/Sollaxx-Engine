@@ -34,11 +34,14 @@ class SongPreloader
 	static var usedBytes:Float = 0;
 	static var running:Bool = false;
 	static var hasPending:Bool = false;
+	static var cancelRequested:Bool = false;
+	static var loadedFiles:Array<String> = []; // files that were moved into the sound cache by flush()
 
 	public static function start(entries:Array<PreloadSong>, selectedIndex:Int)
 	{
 		#if sys
 		if(running) return;
+		cancelRequested = false;
 
 		var enabled:Bool = true;
 		var maxBytes:Float = 1024 * 1024 * 1024;
@@ -73,9 +76,16 @@ class SongPreloader
 				if(startDelay > 0) Sys.sleep(startDelay);
 				for (entry in order)
 				{
+					if(cancelRequested) break;
 					var songPath:String = Paths.formatToSongPath(entry.song);
 					for (name in names)
 					{
+						if(cancelRequested)
+						{
+							running = false;
+							return;
+						}
+
 						if(usedBytes >= maxBytes)
 						{
 							trace('Song preloading stopped: memory limit reached');
@@ -123,10 +133,36 @@ class SongPreloader
 
 		for (item in items)
 		{
+			if(cancelRequested) break; // Freeplay was left while this was loading, don't keep it
 			if(!Paths.currentTrackedSounds.exists(item.file))
 				Paths.currentTrackedSounds.set(item.file, item.sound);
 			Paths.excludeAsset(item.file);
+			loadedFiles.push(item.file);
 		}
+		#end
+	}
+
+	// Frees every preloaded song: stops the preloading and takes the songs out of the sound cache.
+	// A song that is playing right now keeps working, its audio is freed once the song is over.
+	public static function deloadAll()
+	{
+		#if sys
+		cancelRequested = true;
+
+		mutex.acquire();
+		finished = [];
+		hasPending = false;
+		mutex.release();
+
+		for (file in loadedFiles)
+		{
+			Paths.dumpExclusions.remove(file);
+			Paths.currentTrackedSounds.remove(file);
+		}
+		loadedFiles = [];
+		attempted = new Map();
+		usedBytes = 0;
+		openfl.system.System.gc();
 		#end
 	}
 

@@ -6,7 +6,6 @@ import backend.StageData;
 class OptionsState extends MusicBeatState
 {
 	var options:Array<String> = [
-		'Note Colors',
 		'Controls',
 		'Delay and Rating',
 		'Graphics',
@@ -26,8 +25,6 @@ class OptionsState extends MusicBeatState
 	function openSelectedSubstate(label:String) {
 		switch(label)
 		{
-			case 'Note Colors':
-				openSubState(new options.NotesSubState());
 			case 'Controls':
 				openSubState(new options.ControlsSubState());
 			case 'Graphics':

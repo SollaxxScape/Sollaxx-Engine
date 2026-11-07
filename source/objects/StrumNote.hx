@@ -2,12 +2,8 @@ package objects;
 
 import backend.animation.PsychAnimationController;
 
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
-
 class StrumNote extends FlxSprite
 {
-	public var rgbShader:RGBShaderReference;
 	public var resetAnim:Float = 0;
 	private var noteData:Int = 0;
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
@@ -24,26 +20,8 @@ class StrumNote extends FlxSprite
 		return value;
 	}
 
-	public var useRGBShader:Bool = true;
 	public function new(x:Float, y:Float, leData:Int, player:Int) {
 		animation = new PsychAnimationController(this);
-
-		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
-		rgbShader.enabled = false;
-		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
-		
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[leData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[leData];
-		
-		if(leData <= arr.length)
-		{
-			@:bypassAccessor
-			{
-				rgbShader.r = arr[0];
-				rgbShader.g = arr[1];
-				rgbShader.b = arr[2];
-			}
-		}
 
 		noteData = leData;
 		this.player = player;
@@ -165,6 +143,5 @@ class StrumNote extends FlxSprite
 			centerOffsets();
 			centerOrigin();
 		}
-		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
 	}
 }

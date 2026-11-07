@@ -35,6 +35,7 @@ import openfl.filters.ShaderFilter;
 import objects.VideoSprite;
 import objects.Note.EventNote;
 import objects.*;
+import objects.HoldCover;
 import states.stages.*;
 import states.stages.objects.*;
 #if LUA_ALLOWED
@@ -147,6 +148,8 @@ class PlayState extends MusicBeatState
 	public var opponentStrums:FlxTypedGroup<StrumNote>;
 	public var playerStrums:FlxTypedGroup<StrumNote>;
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
+	public var holdCovers:FlxTypedGroup<HoldCover>;
+	var holdCoverSlots:Array<Array<HoldCover>> = [[], []]; // [opponent, player][noteData]
 	public var grpCrossfades:FlxTypedGroup<FlxSprite>; //sollaxx, dont touch my shit pls
 
 	public var cfDuration:Float = 0.75;
@@ -342,6 +345,7 @@ class PlayState extends MusicBeatState
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
+		holdCovers = new FlxTypedGroup<HoldCover>();
 		grpCrossfades = new FlxTypedGroup<FlxSprite>();
 
 		persistentUpdate = true;
@@ -601,6 +605,7 @@ class PlayState extends MusicBeatState
 		generateSong();
 
 		noteGroup.add(grpNoteSplashes);
+		noteGroup.add(holdCovers);
 
 		camFollow = new FlxObject();
 		camFollow.setPosition(camPos.x, camPos.y);
@@ -680,7 +685,7 @@ class PlayState extends MusicBeatState
 		judgementCounter.visible = !ClientPrefs.data.hideSideStatusBar;
 		uiGroup.add(judgementCounter);
 
-		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2A110126b", 16);
+		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2110526b", 16);
 		versionTxt.antialiasing = true;
 		versionTxt.setFormat(Paths.font("vcr.ttf"), 15, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionTxt.scrollFactor.set();
@@ -1230,6 +1235,7 @@ class PlayState extends MusicBeatState
 
 			generateStaticArrows(0);
 			generateStaticArrows(1);
+			createHoldCovers();
 
 			playerLaneUnderlay.x = playerStrums.members[0].x - 25;
 			playerLaneUnderlay.screenCenter(Y);
@@ -3691,6 +3697,64 @@ class PlayState extends MusicBeatState
 					keyReleased(i);
 	}
 
+	// ---- Hold covers (images/HoldNoteEffect, a problem here never crashes the game) ----
+	function createHoldCovers()
+	{
+		try
+		{
+			if(isPixelStage)
+			{
+				trace('Hold cover: pixel stage, no hold covers');
+				return; // no hold covers on pixel stages
+			}
+
+			// One art file per color: holdCoverPurple / Blue / Green / Red
+			var keys:Array<String> = [for (color in HoldCover.colors) HoldCover.findKey(color)];
+			var found:Int = 0;
+			for (i in 0...keys.length)
+			{
+				if(keys[i] != null) found++;
+				else trace('Hold cover: no art for ' + HoldCover.colors[i] + ', expected images/HoldNoteEffect/holdCover' + HoldCover.colors[i] + '.png and .xml');
+			}
+			trace('Hold cover: art found for ' + found + ' of 4 colors (mod folder: "' + Mods.currentModDirectory + '")');
+
+			holdCovers.clear();
+			holdCoverSlots = [[], []];
+			for (side in 0...2)
+			{
+				var strums:FlxTypedGroup<StrumNote> = (side == 1) ? playerStrums : opponentStrums;
+				for (data in 0...Std.int(Math.min(strums.members.length, 4)))
+				{
+					var strum:StrumNote = strums.members[data];
+					if(strum == null || keys[data] == null) continue;
+
+					var cover:HoldCover = new HoldCover(strum, side == 1, HoldCover.colors[data], keys[data]);
+					cover.cameras = [camHUD];
+					holdCovers.add(cover);
+					holdCoverSlots[side][data] = cover;
+				}
+			}
+			trace('Hold cover: ' + holdCovers.length + ' covers created');
+		}
+		catch(e:Dynamic)
+		{
+			trace('Hold covers disabled: ' + e);
+		}
+	}
+
+	function holdCoverHit(note:Note, isPlayer:Bool)
+	{
+		// Only the pieces of a sustain play the hold cover
+		if(note == null || !note.isSustainNote) return;
+
+		try
+		{
+			var cover:HoldCover = holdCoverSlots[isPlayer ? 1 : 0][Math.round(Math.abs(note.noteData))];
+			if(cover != null) cover.hit();
+		}
+		catch(e:Dynamic) {}
+	}
+
 	function noteMiss(daNote:Note):Void
 	{ // You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		// Dupe note remove
@@ -3873,6 +3937,7 @@ class PlayState extends MusicBeatState
 		strumPlayAnim(true, Std.int(Math.abs(note.noteData)), Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
 		note.hitByOpponent = true;
 
+		holdCoverHit(note, false);
 		stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
 		var result:Dynamic = callOnLuas('opponentNoteHit', [
 			notes.members.indexOf(note),
@@ -3998,6 +4063,7 @@ class PlayState extends MusicBeatState
 				spawnNoteSplashOnNote(note);
 		}
 
+		if(!note.hitCausesMiss) holdCoverHit(note, true);
 		stagesFunc(function(stage:BaseStage) stage.goodNoteHit(note));
 		var result:Dynamic = callOnLuas('goodNoteHit', [notes.members.indexOf(note), leData, leType, isSus]);
 		if (result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll)
@@ -4151,11 +4217,13 @@ class PlayState extends MusicBeatState
 		#if FLX_PITCH FlxG.sound.music.pitch = 1; #end
 		FlxG.animationTimeScale = 1;
 
-		Note.globalRgbShaders = [];
 		backend.NoteTypesConfig.clearNoteTypesData();
 
 		instance = null;
 		super.destroy();
+
+		// Always deload the images when leaving a song
+		Paths.deloadImages();
 	}
 
 	var lastStepHit:Int = -1;

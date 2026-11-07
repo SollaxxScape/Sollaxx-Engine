@@ -57,7 +57,12 @@ class CoolUtil
 		if(decimals < 1)
 			return Math.floor(value);
 
-		return Math.floor(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+		var tempMult:Float = 1;
+		for (i in 0...decimals)
+			tempMult *= 10;
+
+		var newValue:Float = Math.floor(value * tempMult);
+		return newValue / tempMult;
 	}
 
 	inline public static function dominantColor(sprite:flixel.FlxSprite):Int

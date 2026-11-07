@@ -1,6 +1,7 @@
 package backend;
 
 import haxe.Json;
+import flixel.FlxState;
 import objects.HealthIcon;
 
 typedef StickerData =
@@ -60,6 +61,19 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	// The sticker layout (and style) is kept so the next state can clear away the exact same stickers
 	static var lastLayout:Array<StickerData> = null;
 	static var lastStyle:String = 'Pop';
+	static var lastMod:String = ''; // the mod (or '' = base game) the icons of that layout come from
+
+	// Set right before a transition starts: the mod folder the icons should come from (null = the current one)
+	public static var destinationMod:String = null;
+
+	// Which mod's icons fit the screen that is about to open (first hovered song / selected week), null = no preference
+	public static function destinationFor(nextState:FlxState):String
+	{
+		if(nextState == null) return null;
+		if(Std.isOfType(nextState, states.FreeplayState)) return states.FreeplayState.firstHoveredFolder();
+		if(Std.isOfType(nextState, states.StoryMenuState)) return states.StoryMenuState.firstWeekFolder();
+		return null;
+	}
 
 	// Color of the tiles behind the icons
 	static var tileColor:FlxColor = 0xFF000000;
@@ -78,6 +92,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	var nextIndex:Int = 0;
 	var lastSoundTime:Float = -1;
 	var handedOver:Bool = false;
+	var tilesShown:Bool = false;
 	var transCam:FlxCamera;
 
 	public function new(duration:Float, isTransIn:Bool)
@@ -99,16 +114,27 @@ class CustomFadeTransition extends MusicBeatSubstate {
 
 		config = loadConfig();
 
+		// The icons never change during a switch: the icon source (base game or ONE mod) is picked once when the
+		// stickers cover the screen, and the very same one is used again when they clear away
+		var originalMod:String = Mods.currentModDirectory;
+		var stickerMod:String = originalMod;
 		if(isTransIn && lastLayout != null)
 		{
 			data = lastLayout;
 			style = lastStyle;
+			stickerMod = lastMod;
 		}
 		else
 		{
+			if(destinationMod != null) stickerMod = destinationMod;
+			destinationMod = null;
+			lastMod = stickerMod;
+
 			style = pickStyle();
 			lastStyle = style;
+			Mods.currentModDirectory = stickerMod;
 			data = lastLayout = buildLayout(width, height, style);
+			Mods.currentModDirectory = originalMod;
 		}
 		data.sort(function(a:StickerData, b:StickerData) return (a.order < b.order) ? -1 : 1);
 
@@ -121,8 +147,8 @@ class CustomFadeTransition extends MusicBeatSubstate {
 				tile.scrollFactor.set();
 				tile.antialiasing = false;
 				tile.setPosition(d.cx - tile.width / 2, d.cy - tile.height / 2);
-				tile.scale.set(isTransIn ? 1 : 0, isTransIn ? 1 : 0);
 				tile.visible = isTransIn;
+				tilesShown = isTransIn;
 				add(tile);
 				backings.push(tile);
 				tileBaseY.push(tile.y);
@@ -134,6 +160,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			}
 		}
 
+		Mods.currentModDirectory = stickerMod; // icons are looked up in this mod only
 		for (d in data)
 		{
 			var icon:HealthIcon = new HealthIcon(d.char);
@@ -147,6 +174,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			stickers.push(icon);
 			iconBaseY.push(icon.y);
 		}
+		Mods.currentModDirectory = originalMod;
 
 		super.create();
 	}
@@ -165,11 +193,19 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			nextIndex++;
 		}
 
+		// The tiles behind the icons never pop one by one (that looked like black squares). They fill the gaps all at once when
+		// the icons almost cover the screen, and they disappear again right when the icons start to clear away
+		if(!isTransIn && !tilesShown && timeIn >= lastPop * 0.75)
+			setTilesVisible(true);
+		else if(isTransIn && tilesShown && timeIn >= 0.02)
+			setTilesVisible(false);
+
 		// Wait until the last sticker finished its animation before handing over
 		var settle:Float = (style == 'Rain') ? 0.55 : 0.4;
 		if(nextIndex >= data.length && timeIn >= Math.max(total, lastPop + settle))
 		{
 			handedOver = true;
+			if(!isTransIn) setTilesVisible(true); // the screen is fully covered when the next state takes over
 			if(isTransIn)
 				close();
 			else
@@ -185,10 +221,16 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		}
 	}
 
+	function setTilesVisible(show:Bool)
+	{
+		tilesShown = show;
+		for (tile in backings)
+			if(tile != null) tile.visible = show;
+	}
+
 	function popSticker(index:Int)
 	{
 		var icon:HealthIcon = stickers[index];
-		var tile:FlxSprite = backings[index];
 		var d:StickerData = data[index];
 		var rain:Bool = (style == 'Rain');
 		playClick();
@@ -199,20 +241,15 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			{
 				// Everything flies back up
 				FlxTween.tween(icon, {y: iconBaseY[index] - 900}, 0.3, {ease: FlxEase.quadIn, onComplete: function(_) icon.visible = false});
-				if(tile != null)
-					FlxTween.tween(tile, {y: tileBaseY[index] - 900}, 0.3, {ease: FlxEase.quadIn, onComplete: function(_) tile.visible = false});
 			}
 			else
 			{
 				FlxTween.tween(icon.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) icon.visible = false});
-				if(tile != null)
-					FlxTween.tween(tile.scale, {x: 0, y: 0}, 0.12, {ease: FlxEase.quadIn, onComplete: function(_) tile.visible = false});
 			}
 		}
 		else
 		{
 			icon.visible = true;
-			if(tile != null) tile.visible = true;
 
 			if(rain)
 			{
@@ -220,12 +257,6 @@ class CustomFadeTransition extends MusicBeatSubstate {
 				icon.scale.set(d.scale, d.scale);
 				icon.y = iconBaseY[index] - 900;
 				FlxTween.tween(icon, {y: iconBaseY[index]}, 0.45, {ease: FlxEase.bounceOut});
-				if(tile != null)
-				{
-					tile.scale.set(1, 1);
-					tile.y = tileBaseY[index] - 900;
-					FlxTween.tween(tile, {y: tileBaseY[index]}, 0.45, {ease: FlxEase.bounceOut});
-				}
 			}
 			else
 			{
@@ -244,8 +275,6 @@ class CustomFadeTransition extends MusicBeatSubstate {
 					default:
 				}
 				FlxTween.tween(icon.scale, {x: d.scale, y: d.scale}, time, {ease: ease});
-				if(tile != null)
-					FlxTween.tween(tile.scale, {x: 1, y: 1}, 0.1, {ease: FlxEase.quadOut});
 			}
 		}
 	}
@@ -426,7 +455,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 					char: chosen,
 					x: centerX + FlxG.random.float(-20, 20),
 					y: centerY + FlxG.random.float(-20, 20),
-					scale: FlxG.random.float(2.0, 2.6),
+					scale: FlxG.random.float(2.4, 3.0),
 					angle: FlxG.random.float(-25, 25),
 					losing: FlxG.random.bool(35),
 					order: orderFor(centerX, centerY),
@@ -449,7 +478,7 @@ class CustomFadeTransition extends MusicBeatSubstate {
 					char: nextChar([lastChar]),
 					x: cornerX + FlxG.random.float(-20, 20),
 					y: cornerY + FlxG.random.float(-20, 20),
-					scale: FlxG.random.float(2.0, 2.6),
+					scale: FlxG.random.float(2.4, 3.0),
 					angle: FlxG.random.float(-25, 25),
 					losing: FlxG.random.bool(35),
 					order: orderFor(cornerX, cornerY),

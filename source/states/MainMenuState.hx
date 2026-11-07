@@ -18,8 +18,8 @@ enum MainMenuColumn
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '2.2A110126b';
-	public static var SollaxxEngineVersion:String = '2.2A110126b';
+	public static var psychEngineVersion:String = '2.2110526b';
+	public static var SollaxxEngineVersion:String = '2.2110526b';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 
@@ -178,11 +178,6 @@ class MainMenuState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-			if (FlxG.keys.justPressed.S)
-			{
-				MusicBeatState.switchState(new OutdatedState());
-			}
-			//well if you want to test the outdated state, you can uncomment this code and press S in the main menu 
 		if (FlxG.sound.music.volume < 0.8)
 			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
 

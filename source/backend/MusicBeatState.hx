@@ -173,6 +173,7 @@ class MusicBeatState extends FlxState
 		if(nextState == null)
 			nextState = FlxG.state;
 
+		CustomFadeTransition.destinationMod = (nextState == FlxG.state) ? null : CustomFadeTransition.destinationFor(nextState);
 		FlxG.state.openSubState(new CustomFadeTransition(0.6, false));
 		if(nextState == FlxG.state)
 			CustomFadeTransition.finishCallback = function() FlxG.resetState();

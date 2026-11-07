@@ -232,6 +232,9 @@ class FreeplayState extends MusicBeatState
 		{
 			selectable = true;
 		});
+
+		// The songs of Freeplay preload while you browse, all of them are freed again when Freeplay is left
+		SongPreloader.start([for (s in songs) {folder: s.folder, song: s.songName}], curSelected);
 	}
 
 	override function closeSubState()
@@ -244,6 +247,43 @@ class FreeplayState extends MusicBeatState
 	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int)
 	{
 		songs.push(new SongMetadata(songName, weekNum, songCharacter, color));
+	}
+
+	// Mod folder ('' = base game) of the song that will be hovered when Freeplay opens, used by the icon transition
+	public static function firstHoveredFolder():String
+	{
+		var previousMod:String = Mods.currentModDirectory;
+		var result:String = null;
+		try
+		{
+			WeekData.reloadWeekFiles(false);
+			var songCount:Int = 0;
+			for (name in WeekData.weeksList)
+			{
+				var week:WeekData = WeekData.weeksLoaded.get(name);
+				var locked:Bool = (!week.startUnlocked && week.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(week.weekBefore) || !StoryMenuState.weekCompleted.get(week.weekBefore)));
+				if(!locked) songCount += week.songs.length;
+			}
+
+			var target:Int = (curSelected >= songCount) ? 0 : curSelected;
+			var passed:Int = 0;
+			for (name in WeekData.weeksList)
+			{
+				var week:WeekData = WeekData.weeksLoaded.get(name);
+				var locked:Bool = (!week.startUnlocked && week.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(week.weekBefore) || !StoryMenuState.weekCompleted.get(week.weekBefore)));
+				if(locked) continue;
+
+				if(target < passed + week.songs.length)
+				{
+					result = (week.folder == null) ? '' : week.folder;
+					break;
+				}
+				passed += week.songs.length;
+			}
+		}
+		catch(e:Dynamic) {}
+		Mods.currentModDirectory = previousMod;
+		return result;
 	}
 
 	function weekIsLocked(name:String):Bool
@@ -818,6 +858,10 @@ class FreeplayState extends MusicBeatState
 	{
 		cancelPreviewTimer();
 		super.destroy();
+
+		// Deload everything when leaving Freeplay (back to the main menu or into a song): the preloaded songs and the images
+		SongPreloader.deloadAll();
+		Paths.deloadImages();
 
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)

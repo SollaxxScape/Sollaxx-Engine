@@ -175,8 +175,7 @@ class TextFunctions
 			var text:FlxText = variables.get(tag);
 			if(text == null) return;
 
-			var instance:Dynamic = CustomSubstate.instance != null ? CustomSubstate.instance : LuaUtils.getTargetInstance();
-			instance.remove(text, true);
+			LuaUtils.getTargetInstance().remove(text, true);
 			if(destroy)
 			{
 				text.destroy();

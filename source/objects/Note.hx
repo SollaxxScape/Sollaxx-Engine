@@ -3,9 +3,6 @@ package objects;
 import backend.animation.PsychAnimationController;
 import backend.NoteTypesConfig;
 
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
-
 import objects.StrumNote;
 
 import flixel.math.FlxRect;
@@ -22,8 +19,6 @@ typedef EventNote = {
 typedef NoteSplashData = {
 	disabled:Bool,
 	texture:String,
-	useGlobalShader:Bool, //breaks r/g/b but makes it copy default colors for your custom note
-	useRGBShader:Bool,
 	antialiasing:Bool,
 	a:Float
 }
@@ -80,8 +75,6 @@ class Note extends FlxSprite
 	public var eventVal1:String = '';
 	public var eventVal2:String = '';
 
-	public var rgbShader:RGBShaderReference;
-	public static var globalRgbShaders:Array<RGBPalette> = [];
 	public var inEditor:Bool = false;
 
 	public var animSuffix:String = '';
@@ -95,14 +88,20 @@ class Note extends FlxSprite
 	public static var SUSTAIN_SIZE:Int = 44;
 	public static var swagWidth:Float = 160 * 0.7;
 	public static var colArray:Array<String> = ['purple', 'blue', 'green', 'red'];
-	public static var defaultNoteSkin(default, never):String = 'noteSkins/NOTE_assets';
+	// Psych 0.6.3 style note skin: images/NOTE_assets (pixel levels: images/pixelUI/NOTE_assets), the old images/noteSkins folder still works too
+	public static var defaultNoteSkin(get, never):String;
+	static function get_defaultNoteSkin():String
+	{
+		var folder:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+		if(Paths.fileExists('images/' + folder + 'NOTE_assets.png', IMAGE)) return 'NOTE_assets';
+		if(Paths.fileExists('images/' + folder + 'noteSkins/NOTE_assets.png', IMAGE)) return 'noteSkins/NOTE_assets';
+		return 'NOTE_assets';
+	}
 
 	public var noteSplashData:NoteSplashData = {
 		disabled: false,
 		texture: null,
 		antialiasing: !PlayState.isPixelStage,
-		useGlobalShader: false,
-		useRGBShader: (PlayState.SONG != null) ? !(PlayState.SONG.disableNoteRGB == true) : true,
 		a: ClientPrefs.data.splashAlpha
 	};
 
@@ -167,46 +166,21 @@ class Note extends FlxSprite
 		return value;
 	}
 
-	public function defaultRGB()
-	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData];
-
-		if (arr != null && noteData > -1 && noteData <= arr.length)
-		{
-			rgbShader.r = arr[0];
-			rgbShader.g = arr[1];
-			rgbShader.b = arr[2];
-		}
-		else
-		{
-			rgbShader.r = 0xFFFF0000;
-			rgbShader.g = 0xFF00FF00;
-			rgbShader.b = 0xFF0000FF;
-		}
-	}
-
 	private function set_noteType(value:String):String {
 		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes';
-		defaultRGB();
 
 		if(noteData > -1 && noteType != value) {
 			switch(value) {
 				case 'Hurt Note':
 					ignoreNote = mustPress;
-					//reloadNote('HURTNOTE_assets');
-					//this used to change the note texture to HURTNOTE_assets.png,
-					//but i've changed it to something more optimized with the implementation of RGBPalette:
-
-					// note colors
-					rgbShader.r = 0xFF101010;
-					rgbShader.g = 0xFFFF0000;
-					rgbShader.b = 0xFF990022;
+					// Hurt notes use their own note texture (images/HURTNOTE_assets, pixel levels: images/pixelUI/HURTNOTE_assets), if it exists
+					var hurtFolder:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+					var hurtEnds:String = (PlayState.isPixelStage && isSustainNote) ? 'ENDS' : '';
+					if(Paths.fileExists('images/' + hurtFolder + 'HURTNOTE_assets' + hurtEnds + '.png', IMAGE))
+						reloadNote('HURTNOTE_assets');
 
 					// splash data and colors
-					//noteSplashData.r = 0xFFFF0000;
-					//noteSplashData.g = 0xFF101010;
-					noteSplashData.texture = 'noteSplashes-electric';
+					noteSplashData.texture = 'HURTnoteSplashes';
 
 					// gameplay data
 					lowPriority = true;
@@ -256,8 +230,6 @@ class Note extends FlxSprite
 
 		if(noteData > -1)
 		{
-			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
-			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
 			texture = '';
 
 			x += swagWidth * (noteData);
@@ -322,31 +294,6 @@ class Note extends FlxSprite
 		x += offsetX;
 	}
 
-	public static function initializeGlobalRGBShader(noteData:Int)
-	{
-		if(globalRgbShaders[noteData] == null)
-		{
-			var newRGB:RGBPalette = new RGBPalette();
-			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGB[noteData] : ClientPrefs.data.arrowRGBPixel[noteData];
-			
-			if (arr != null && noteData > -1 && noteData <= arr.length)
-			{
-				newRGB.r = arr[0];
-				newRGB.g = arr[1];
-				newRGB.b = arr[2];
-			}
-			else
-			{
-				newRGB.r = 0xFFFF0000;
-				newRGB.g = 0xFF00FF00;
-				newRGB.b = 0xFF0000FF;
-			}
-			
-			globalRgbShaders[noteData] = newRGB;
-		}
-		return globalRgbShaders[noteData];
-	}
-
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
@@ -362,7 +309,6 @@ class Note extends FlxSprite
 			if(skin == null || skin.length < 1)
 				skin = defaultNoteSkin + postfix;
 		}
-		else rgbShader.enabled = false;
 
 		var animName:String = null;
 		if(animation.curAnim != null) {
@@ -420,10 +366,7 @@ class Note extends FlxSprite
 
 	public static function getNoteSkinPostfix()
 	{
-		var skin:String = '';
-		if(ClientPrefs.data.noteSkin != ClientPrefs.defaultData.noteSkin)
-			skin = '-' + ClientPrefs.data.noteSkin.trim().toLowerCase().replace(' ', '_');
-		return skin;
+		return ''; // no note skin selector anymore (Psych 0.6.3 note system)
 	}
 
 	function loadNoteAnims() {
