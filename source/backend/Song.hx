@@ -63,9 +63,9 @@ class Song
 	public var player1:String = 'bf';
 	public var player2:String = 'dad';
 	public var gfVersion:String = 'gf';
-	public var format:String = 'psych_v1';
+	public var format:String = 'sollaxx_v1';
 
-	public static function convert(songJson:Dynamic) // Convert old charts to psych_v1 format
+	public static function convert(songJson:Dynamic) // Convert old charts (anything before the Psych V1 layout) to the Sollaxx V1 layout
 	{
 		if (songJson.gfVersion == null)
 		{
@@ -160,7 +160,7 @@ class Song
 		return rawData != null ? parseJSON(rawData, jsonInput) : null;
 	}
 
-	public static function parseJSON(rawData:String, ?nameForError:String = null, ?convertTo:String = 'psych_v1'):SwagSong
+	public static function parseJSON(rawData:String, ?nameForError:String = null, ?convertTo:String = 'sollaxx_v1'):SwagSong
 	{
 		var songJson:SwagSong = cast Json.parse(rawData);
 		if (Reflect.hasField(songJson, 'song'))
@@ -178,11 +178,23 @@ class Song
 
 			switch (convertTo)
 			{
-				case 'psych_v1':
-					if (!fmt.startsWith('psych_v1')) // Convert to Psych 1.0 format
+				case 'sollaxx_v1':
+					if (fmt.startsWith('sollaxx_v1'))
 					{
-						trace('converting chart $nameForError with format $fmt to psych_v1 format...');
-						songJson.format = 'psych_v1_convert';
+						// already the Sollaxx V1 layout
+					}
+					else if (fmt.startsWith('psych_v1'))
+					{
+						// The Psych V1 layout is the same layout, it only gets the Sollaxx V1 name
+						trace('converting chart $nameForError from Psych V1 to Sollaxx V1...');
+						songJson.format = 'sollaxx_v1_convert';
+					}
+					else
+					{
+						// Unknown or old layout: convert it to Sollaxx V1
+						// (this is also the place to add other layouts later, like V-Slice charts)
+						trace('converting chart $nameForError with format $fmt to Sollaxx V1...');
+						songJson.format = 'sollaxx_v1_convert';
 						convert(songJson);
 					}
 			}

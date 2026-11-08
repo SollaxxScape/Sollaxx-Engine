@@ -611,7 +611,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			player2: 'dad',
 			gfVersion: 'gf',
 			stage: 'stage',
-			format: 'psych_v1'
+			format: 'sollaxx_v1'
 		};
 		Song.chartPath = null;
 		loadChart(song);
@@ -3746,7 +3746,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				upperBox.isMinimized = true;
 
 				updateChartData();
-				fileDialog.save('events.json', PsychJsonPrinter.print({events: PlayState.SONG.events, format: 'psych_v1'}, ['events']),
+				fileDialog.save('events.json', PsychJsonPrinter.print({events: PlayState.SONG.events, format: 'sollaxx_v1'}, ['events']),
 					function() showOutput('Events saved successfully to: ${fileDialog.path}'), null, function() showOutput('Error on saving events!', true));
 			}, btnWid);
 			btn.text.alignment = LEFT;
@@ -4169,12 +4169,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					if (fmt == null || fmt.length < 1)
 						fmt = loadedChart.format = 'Sollaxx';
 
-					if (!fmt.startsWith('psych_v1'))
+					if (!fmt.startsWith('sollaxx_v1'))
 					{
-						loadedChart.format = 'psych_v1_convert';
-						Song.convert(loadedChart);
+						loadedChart.format = 'sollaxx_v1_convert';
+						if (!fmt.startsWith('psych_v1')) // Psych V1 is the same layout, only the name changes
+							Song.convert(loadedChart);
 						File.saveContent(fileDialog.path, PsychJsonPrinter.print(loadedChart, ['sectionNotes', 'events']));
-						showOutput('Updated "$filePath" from format "$fmt" to "psych_v1" successfully!');
+						showOutput('Updated "$filePath" from format "$fmt" to "sollaxx_v1" successfully!');
 					}
 					else
 						showOutput('Chart is already up-to-date! Format: "$fmt"', true);
