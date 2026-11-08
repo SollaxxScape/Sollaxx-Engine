@@ -216,6 +216,14 @@ class PlayState extends MusicBeatState
 
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
+
+	// Icon bump like FNF 0.2.7.1: on every beat the icons grow by 30 pixels (150 -> 180) and shrink back fast,
+	// the extra size halves every frame (at 60 fps, same speed on any framerate).
+	// On top of that the icons jump with it: downscroll = UP, upscroll = DOWN, following the same curve.
+	public static var iconBumpPixels:Float = 18; // how far the icons jump on the beat (Sollaxx Engine style)
+	public static var iconBumpStyles:Array<String> = ['Sollaxx Engine', 'Kade', 'Psych', 'V-Slice', 'Wobble', 'Squash & Stretch', 'None'];
+	var iconWobbleSide:Int = 1;
+	var iconBumpApplied:Array<Float> = [0, 0]; // the part of the jump that is already added to the icon's y
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
@@ -685,7 +693,7 @@ class PlayState extends MusicBeatState
 		judgementCounter.visible = !ClientPrefs.data.hideSideStatusBar;
 		uiGroup.add(judgementCounter);
 
-		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 Beta 2.2110526b", 16);
+		versionTxt = new FlxText(0, FlxG.height - 18, 0, SONG.song + " - " + backend.Difficulty.getString() + " | Sollaxx Engine 2.2 RC1", 16);
 		versionTxt.antialiasing = true;
 		versionTxt.setFormat(Paths.font("vcr.ttf"), 15, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionTxt.scrollFactor.set();
@@ -1060,8 +1068,8 @@ class PlayState extends MusicBeatState
 	public function startVideo(name:String, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
 		#if VIDEOS_ALLOWED
-		inCutscene = true;
-		canPause = false;
+		inCutscene = !forMidSong;
+		canPause = forMidSong;
 
 		var foundFile:Bool = false;
 		var fileName:String = Paths.video(name);
@@ -1082,13 +1090,13 @@ class PlayState extends MusicBeatState
 			{
 				function onVideoEnd()
 				{
-					if (generatedMusic && PlayState.SONG.notes[Std.int(curStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
+					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(curStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
 					{
 						moveCameraSection();
 						FlxG.camera.snapToTarget();
 					}
 					videoCutscene = null;
-					canPause = false;
+					canPause = true;
 					inCutscene = false;
 					startAndEnd();
 				}
@@ -1098,7 +1106,7 @@ class PlayState extends MusicBeatState
 			add(videoCutscene);
 
 			if (playOnLoad)
-				videoCutscene.videoSprite.play();
+				videoCutscene.play();
 			return videoCutscene;
 		}
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -2333,6 +2341,7 @@ class PlayState extends MusicBeatState
 
 		updateIconsScale(elapsed);
 		updateIconsPosition();
+		updateIconsBump(elapsed);
 
 		if (startedCountdown && !paused)
 		{
@@ -2526,15 +2535,97 @@ class PlayState extends MusicBeatState
 	}
 
 	// Health icon updaters
+	// ---- Icon bump styles (Options > Visuals > Icon Bump Style) ----
+	//  Sollaxx Engine   grows 30 pixels like 0.2.7.1 and jumps up (downscroll) / down (upscroll)
+	//  Kade             grows 30 pixels like 0.2.7.1 / Kade Engine and snaps back
+	//  Psych            the Psych Engine bump, a softer return
+	//  V-Slice          a bigger bump with a slow, smooth return
+	//  Wobble           the icons tilt left and right on every beat
+	//  Squash & Stretch the icons get thin and tall, then bounce back
+	//  None             no bump
+	function iconBumpStyle():String
+	{
+		var style:String = ClientPrefs.data.iconBumpStyle;
+		return (style == null || !iconBumpStyles.contains(style)) ? 'Sollaxx Engine' : style;
+	}
+
+	// Called on every beat
+	function bumpIcons()
+	{
+		var style:String = iconBumpStyle();
+		if (style == 'None') return;
+
+		var scaleX:Float = 1.2; // +30 pixels
+		var scaleY:Float = 1.2;
+		var angle:Float = 0;
+		switch (style)
+		{
+			case 'V-Slice':
+				scaleX = scaleY = 1.25;
+			case 'Wobble':
+				scaleX = scaleY = 1.15;
+				iconWobbleSide = -iconWobbleSide;
+				angle = 12 * iconWobbleSide;
+			case 'Squash & Stretch':
+				scaleX = 0.8;
+				scaleY = 1.3;
+			default:
+		}
+
+		iconP1.scale.set(scaleX, scaleY);
+		iconP2.scale.set(scaleX, scaleY);
+		if (style == 'Wobble')
+		{
+			iconP1.angle = angle;
+			iconP2.angle = -angle;
+		}
+		iconP1.updateHitbox();
+		iconP2.updateHitbox();
+	}
+
+	// How much of the extra size is left after this frame (0.5 = half of it is gone)
+	function iconBumpKeep(elapsed:Float):Float
+	{
+		switch (iconBumpStyle())
+		{
+			case 'Psych': return Math.exp(-elapsed * 9 * playbackRate);
+			case 'V-Slice': return Math.exp(-elapsed * 6 * playbackRate);
+			default: return Math.pow(0.5, elapsed * 60 * playbackRate); // 0.2.7.1: half is gone every frame at 60 fps
+		}
+	}
+
+	function shrinkIcon(icon:HealthIcon, keep:Float, wobble:Bool)
+	{
+		if (icon == null) return;
+		icon.scale.set(FlxMath.lerp(1, icon.scale.x, keep), FlxMath.lerp(1, icon.scale.y, keep));
+		if (wobble) icon.angle = FlxMath.lerp(0, icon.angle, keep);
+		icon.updateHitbox();
+	}
+
+	// Sollaxx Engine style: the icons jump with their size bump (up to 1.2 = +30 pixels). Downscroll: up, upscroll: down.
+	// Only the change is added to the icon's y, so scripts that move the icons themselves keep working.
+	function updateIconsBump(elapsed:Float)
+	{
+		var jump:Float = (iconBumpStyle() == 'Sollaxx Engine') ? iconBumpPixels * (ClientPrefs.data.downScroll ? -1 : 1) : 0;
+		jumpIcon(iconP1, 0, jump);
+		jumpIcon(iconP2, 1, jump);
+	}
+
+	function jumpIcon(icon:HealthIcon, index:Int, maxJump:Float)
+	{
+		if (icon == null) return;
+		var bump:Float = Math.max(0, Math.min(1, (icon.scale.x - 1) / 0.2));
+		var offset:Float = maxJump * bump;
+		icon.y += offset - iconBumpApplied[index];
+		iconBumpApplied[index] = offset;
+	}
+
 	public dynamic function updateIconsScale(elapsed:Float)
 	{
-		var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-		iconP1.scale.set(mult, mult);
-		iconP1.updateHitbox();
-
-		var mult:Float = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-		iconP2.scale.set(mult, mult);
-		iconP2.updateHitbox();
+		var keep:Float = iconBumpKeep(elapsed);
+		var wobble:Bool = iconBumpStyle() == 'Wobble';
+		shrinkIcon(iconP1, keep, wobble);
+		shrinkIcon(iconP2, keep, wobble);
 	}
 
 	public dynamic function updateIconsPosition()
@@ -3730,6 +3821,7 @@ class PlayState extends MusicBeatState
 
 					var cover:HoldCover = new HoldCover(strum, side == 1, HoldCover.colors[data], keys[data]);
 					cover.cameras = [camHUD];
+					cover.noteData = data;
 					holdCovers.add(cover);
 					holdCoverSlots[side][data] = cover;
 				}
@@ -3750,7 +3842,11 @@ class PlayState extends MusicBeatState
 		try
 		{
 			var cover:HoldCover = holdCoverSlots[isPlayer ? 1 : 0][Math.round(Math.abs(note.noteData))];
-			if(cover != null) cover.hit();
+			if(cover == null) return;
+
+			// The last piece of the sustain (its end) ends the cover at the same moment
+			var isEnd:Bool = note.animation.curAnim != null && note.animation.curAnim.name.endsWith('end');
+			cover.hit(isEnd);
 		}
 		catch(e:Dynamic) {}
 	}
@@ -4024,7 +4120,11 @@ class PlayState extends MusicBeatState
 			{
 				var spr = playerStrums.members[note.noteData];
 				if (spr != null)
+				{
 					spr.playAnim('confirm', true);
+					// A normal note (no hold cover): back to the pressed animation after 0.5 seconds
+					spr.pressedAfter = (!note.isSustainNote && note.tail.length < 1) ? 0.5 : 0;
+				}
 			}
 			else
 				strumPlayAnim(false, Std.int(Math.abs(note.noteData)), Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
@@ -4255,11 +4355,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic)
 			notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
 
-		iconP1.scale.set(1.2, 0.4);
-		iconP2.scale.set(1.2, 0.4);
-
-		iconP1.updateHitbox();
-		iconP2.updateHitbox();
+		bumpIcons();
 
 		characterBopper(curBeat);
 
@@ -4590,6 +4686,13 @@ class PlayState extends MusicBeatState
 			script.set(variable, arg);
 		}
 		#end
+	}
+
+	// Is the key of this note column held right now (used by the hold cover and the strum animations)
+	public function isKeyHeld(data:Int):Bool
+	{
+		if (data < 0 || data >= keysArray.length) return false;
+		return controls.pressed(keysArray[data]);
 	}
 
 	function strumPlayAnim(isDad:Bool, id:Int, time:Float)

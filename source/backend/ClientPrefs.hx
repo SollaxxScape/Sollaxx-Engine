@@ -86,6 +86,7 @@ import states.TitleState;
 	public var language:String = 'en-US';
 	public var vocalResyncIndicator:Bool = false;
 	public var hideSideStatusBar:Bool = false;
+	public var iconBumpStyle:String = 'Sollaxx Engine';
 	public var transitionStyle:String = 'Pop';
 	public var transitionSpeed:Float = 1;
 }

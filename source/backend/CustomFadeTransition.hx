@@ -331,8 +331,14 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	}
 
 	// Every icon name that exists in the icon folder of the mod you're in (or the base game when you're not in a mod)
+	static var iconNameCache:Map<String, Array<String>> = new Map();
+
 	static function collectIconNames():Array<String>
 	{
+		// Scanning the folders and checking every icon takes a moment, so it is only done once per mod
+		var cacheKey:String = (Mods.currentModDirectory == null) ? '' : Mods.currentModDirectory;
+		if(iconNameCache.exists(cacheKey)) return iconNameCache.get(cacheKey).copy();
+
 		var names:Array<String> = [];
 		function scan(dir:String)
 		{
@@ -369,6 +375,8 @@ class CustomFadeTransition extends MusicBeatSubstate {
 			scan('assets/shared/images/Icons');
 			scan('assets/shared/images/icons');
 		}
+
+		iconNameCache.set(cacheKey, names.copy());
 		return names;
 	}
 

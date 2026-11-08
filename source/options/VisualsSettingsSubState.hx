@@ -113,6 +113,13 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Icon Bump Style:',
+			"How the health icons bump on the beat.\nSollaxx Engine, Kade, Psych, V-Slice, Wobble, Squash & Stretch or None.",
+			'iconBumpStyle',
+			STRING,
+			PlayState.iconBumpStyles);
+		addOption(option);
+
 		var option:Option = new Option('Icon Transition Style:',
 			"How the icons cover the screen between menus.\nPop, Waves, Ripple, Diagonal, Rain, Checkerboard or Random.",
 			'transitionStyle',

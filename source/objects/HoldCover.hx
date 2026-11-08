@@ -6,6 +6,7 @@ import backend.Paths;
 import backend.Mods;
 import backend.Conductor;
 import backend.ClientPrefs;
+import states.PlayState;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.utils.Assets as OpenFlAssets;
@@ -26,6 +27,7 @@ class HoldCover extends FlxSprite
 	public var strum:StrumNote;
 	public var isPlayer:Bool = false;
 	public var valid:Bool = false;
+	public var noteData:Int = 0;
 
 	var lastHitTime:Float = -999999;
 
@@ -179,6 +181,26 @@ class HoldCover extends FlxSprite
 		return null;
 	}
 
+	// Is the key of this cover held? (botplay has no keys, the hits decide there)
+	function keyHeld():Bool
+	{
+		var game:PlayState = PlayState.instance;
+		if(game == null || game.cpuControlled) return true;
+		return game.isKeyHeld(noteData);
+	}
+
+	// The hold is over: pressed animation on the strum when the key is still held, otherwise static
+	function strumAfterHold()
+	{
+		if(strum == null) return;
+
+		var game:PlayState = PlayState.instance;
+		var held:Bool = isPlayer && game != null && !game.cpuControlled && game.isKeyHeld(noteData);
+		strum.playAnim(held ? 'pressed' : 'static', true);
+		strum.resetAnim = 0;
+		strum.pressedAfter = 0;
+	}
+
 	function followStrum()
 	{
 		if(useFixedOffsets)
@@ -202,24 +224,50 @@ class HoldCover extends FlxSprite
 		followStrum();
 
 		var name:String = animation.curAnim != null ? animation.curAnim.name : '';
+
+		// The key was let go: the cover is gone right away, even when there is still some trail left.
+		// The end animation is never cut off, it always plays until its last frame.
+		if(name != 'end' && isPlayer && !keyHeld())
+		{
+			visible = false;
+			return;
+		}
+
 		if(name == 'end')
 		{
 			if(animation.curAnim.finished) visible = false;
 		}
-		else if(Conductor.songPosition - lastHitTime > Conductor.stepCrochet * 1.5)
+		else if(Conductor.songPosition - lastHitTime > Conductor.stepCrochet * 1.1)
 		{
-			// No sustain hit for a step: the player plays the end animation, the opponent just stops
-			if(isPlayer && animation.exists('end'))
-				animation.play('end', true);
-			else
-				visible = false;
+			// No sustain piece was hit for a step (safety, the last piece normally ends the cover): finish it
+			finish();
 		}
 	}
 
 	// A piece of a sustain was hit
+	// The hold is over: the player plays the end animation (holdCoverEnd<Color>) and the strum goes to the pressed
+	// animation, the opponent's cover just stops
+	public function finish()
+	{
+		if(!visible) return;
+
+		var name:String = animation.curAnim != null ? animation.curAnim.name : '';
+		if(name == 'end') return; // already ending
+
+		if(isPlayer && animation.exists('end'))
+		{
+			animation.play('end', true);
+			strumAfterHold(); // the cover reached holdCoverEnd<Color>0001: the strum goes to the pressed animation
+		}
+		else
+			visible = false;
+	}
+
 	static var tracedFirstHit:Bool = false;
 	static var tracedPosition:Bool = false;
-	public function hit()
+
+	// A piece of a sustain was hit, isEnd = it was the last piece (the end of the hold note)
+	public function hit(isEnd:Bool = false)
 	{
 		if(!valid || strum == null) return;
 		if(!tracedFirstHit)
@@ -243,6 +291,13 @@ class HoldCover extends FlxSprite
 		}
 
 		var name:String = animation.curAnim != null ? animation.curAnim.name : '';
+		if(isEnd)
+		{
+			// The hold note ends right now, the cover ends at the same moment
+			finish();
+			return;
+		}
+
 		if(name != 'hold')
 			animation.play('hold', true);
 	}

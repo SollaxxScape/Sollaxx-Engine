@@ -336,7 +336,7 @@ class TitleState extends MusicBeatState
 
 		credTextShit.visible = false;
 
-		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/logo'));
+		psychSpr = new FlxSprite(0, FlxG.height * 0.4).loadGraphic(Paths.image('loading_screen/icon'));
 		add(psychSpr);
 		psychSpr.visible = false;
 		psychSpr.scale.x = 0.4;
@@ -616,7 +616,7 @@ class TitleState extends MusicBeatState
 				gfDance.animation.play('danceLeft');
 		}
 
-			if(!closedState) {
+		if(!closedState) {
 			sickBeats++;
 			switch (sickBeats)
 			{
@@ -658,6 +658,7 @@ class TitleState extends MusicBeatState
 			}
 		}
 	}
+
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;
 	function skipIntro():Void
@@ -721,7 +722,7 @@ class TitleState extends MusicBeatState
 			{
 				remove(psychSpr);
 				remove(credGroup);
-				FlxG.camera.flash(FlxColor.WHITE, 4);
+				FlxG.camera.flash(FlxColor.WHITE, 2);
 
 				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;
 				if (easteregg == null) easteregg = '';

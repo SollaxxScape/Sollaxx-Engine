@@ -5,6 +5,7 @@ import backend.animation.PsychAnimationController;
 class StrumNote extends FlxSprite
 {
 	public var resetAnim:Float = 0;
+	public var pressedAfter:Float = 0; // seconds until a 'confirm' turns into 'pressed' (while the key is held), 0 = off
 	private var noteData:Int = 0;
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
 	public var downScroll:Bool = false;//plan on doing scroll directions soon -bb
@@ -131,6 +132,18 @@ class StrumNote extends FlxSprite
 			if(resetAnim <= 0) {
 				playAnim('static');
 				resetAnim = 0;
+			}
+		}
+
+		if(pressedAfter > 0) {
+			pressedAfter -= elapsed;
+			if(pressedAfter <= 0) {
+				pressedAfter = 0;
+				var game:PlayState = PlayState.instance;
+				if(player == 1 && game != null && !game.cpuControlled && animation.curAnim != null && animation.curAnim.name == 'confirm' && game.isKeyHeld(noteData)) {
+					playAnim('pressed', true);
+					resetAnim = 0;
+				}
 			}
 		}
 		super.update(elapsed);

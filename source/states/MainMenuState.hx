@@ -18,8 +18,7 @@ enum MainMenuColumn
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '2.2110526b';
-	public static var SollaxxEngineVersion:String = '2.2110526b';
+	public static var SollaxxEngineVersion:String = '2.2 RC1';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 
@@ -111,13 +110,13 @@ class MainMenuState extends MusicBeatState
 			rightItem.x -= rightItem.width;
 		}
 
-		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' 0.3.2");
+		var psychVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' 0.6.4");
 		psychVer.scrollFactor.set();
 		psychVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		psychVer.antialiasing = true;
 		add(psychVer);
 
-		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "Sollaxx Engine V2.2 Beta", 12);
+		var SollaxxVer:FlxText = new FlxText(12, FlxG.height - 24, 1250, "Sollaxx Engine V2.2 Release Candidate", 12);
 		SollaxxVer.scrollFactor.set();
 		SollaxxVer.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		SollaxxVer.antialiasing = true;

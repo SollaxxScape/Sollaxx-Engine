@@ -44,7 +44,7 @@ class SongPreloader
 		cancelRequested = false;
 
 		var enabled:Bool = true;
-		var maxBytes:Float = 1024 * 1024 * 1024;
+		var maxBytes:Float = 4096 * 4096 * 4096;
 		var includeVoices:Bool = false;
 		var startDelay:Float = 2;
 		try
@@ -54,7 +54,7 @@ class SongPreloader
 			{
 				var json:Dynamic = Json.parse(raw);
 				if(json.enabled != null) enabled = json.enabled;
-				if(json.maxMemoryMB != null) maxBytes = json.maxMemoryMB * 1024.0 * 1024.0;
+				if(json.maxMemoryMB != null) maxBytes = json.maxMemoryMB * 4096.0 * 4096.0;
 				if(json.includeVoices != null) includeVoices = json.includeVoices;
 				if(json.startDelay != null) startDelay = json.startDelay;
 			}
