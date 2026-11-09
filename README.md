@@ -19,12 +19,12 @@ The engine wasn't perfect back then and was filled with tons of tons of bugs unt
 
 funny how a small version number was made after a year goddamn.
 
-0.1.5 Alpha - May 2022
-1.0 - December 2022
-1.1 January 2023
-1.3 November 2024
-2.0 October 2025
-2.2 November or December 2026 with the source code finally publishing
+- 0.1.5 Alpha - May 2022
+- 1.0 - December 2022
+- 1.1 January 2023
+- 1.3 November 2024
+- 2.0 October 2025
+- 2.2 November or December 2026 with the source code finally publishing
 
 ## Compatibility:
 
