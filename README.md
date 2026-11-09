@@ -68,3 +68,5 @@ Join the discord server for the updates/announcements and support
 * BuilderEric14 - Worked from Sollaxx Engine v0.3.4 Alpha to 0.8.3 Beta
 * NickDoodlez - Helped me with Sollaxx Engine 2.2 Alphas.
 _____________________________________
+
+# IF YOU WISH TO CREATE A FORK OR USE THE ENGINE'S CODE TO BUILD YOUR OWN ENGINE PLEASE CREDIT MY WORK THANK YOU!!
