@@ -16,7 +16,7 @@ Engine originally used on SollVerse Mod, intended to be a add more features for 
 Story of Sollaxx Engine:
 
 Sollaxx Engine exists since 2022, but the source code was always privated and never published.
-The engine wasn't perfect back then and was filled with tons of tons of bugs until I have cancelled this engine in 2023 and brought it back in 2024 with the SollVerse mod fixing all the bugs that was before Version 1.3. I wanted Sollaxx Engine to be perfect and here I am finally completing my dreams
+The engine wasn't perfect back then and was filled with tons of tons of bugs until I have cancelled this engine in 2023 and brought it back in 2024 with the SollVerse mod fixing all the bugs that was before Version 1.3. I wanted Sollaxx Engine to be perfect and here I am finally completing my dreams.
 
 funny how a small version number was made after a year goddamn.
 
