@@ -22,9 +22,9 @@ funny how a small version number was made after a year goddamn.
 
 - 0.1.5 Alpha - May 2022 - Very first build
 - 1.0 December 2022 - engine no longer in beta finally
-- 1.1 January 2023
-- 1.3 November 2024
-- 2.0 October 2025
+- 1.1 January 2023 - buggiest version and lost motivation to continue working on this engine..
+- 1.3 November 2024 - brought back from the dead and fixed everything
+- 2.0 October 2025 - biggest update ever
 - 2.2 November or December 2026 - with the source code finally publishing
 
 ## Compatibility:
