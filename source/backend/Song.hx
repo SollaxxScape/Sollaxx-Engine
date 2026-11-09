@@ -1,5 +1,6 @@
 package backend;
 
+import states.editors.content.PsychJsonPrinter;
 import haxe.Json;
 import lime.utils.Assets;
 import objects.Note;
@@ -157,11 +158,34 @@ class Song
 		#end
 		rawData = Assets.getText(_lastPath);
 
-		return rawData != null ? parseJSON(rawData, jsonInput) : null;
+		if (rawData == null) return null;
+
+		var chart:SwagSong = parseJSON(rawData, jsonInput);
+
+		// The chart had to be converted to Sollaxx V1: write it back, so the format in the json file says sollaxx_v1 from now on
+		#if MODS_ALLOWED
+		if (chart != null && lastParseConverted && FileSystem.exists(_lastPath))
+		{
+			try
+			{
+				File.saveContent(_lastPath, PsychJsonPrinter.print(chart, ['sectionNotes', 'events']));
+				trace('saved converted chart "$_lastPath" as ${chart.format}');
+			}
+			catch (e:Dynamic)
+			{
+				trace('could not save the converted chart "$_lastPath": $e');
+			}
+		}
+		#end
+		return chart;
 	}
+
+	// true when the last parseJSON had to convert the chart to Sollaxx V1
+	static var lastParseConverted:Bool = false;
 
 	public static function parseJSON(rawData:String, ?nameForError:String = null, ?convertTo:String = 'sollaxx_v1'):SwagSong
 	{
+		lastParseConverted = false;
 		var songJson:SwagSong = cast Json.parse(rawData);
 		if (Reflect.hasField(songJson, 'song'))
 		{
@@ -187,7 +211,8 @@ class Song
 					{
 						// The Psych V1 layout is the same layout, it only gets the Sollaxx V1 name
 						trace('converting chart $nameForError from Psych V1 to Sollaxx V1...');
-						songJson.format = 'sollaxx_v1_convert';
+						songJson.format = 'sollaxx_v1';
+						lastParseConverted = true;
 					}
 					else
 					{
@@ -195,6 +220,7 @@ class Song
 						// (this is also the place to add other layouts later, like V-Slice charts)
 						trace('converting chart $nameForError with format $fmt to Sollaxx V1...');
 						songJson.format = 'sollaxx_v1_convert';
+						lastParseConverted = true;
 						convert(songJson);
 					}
 			}
