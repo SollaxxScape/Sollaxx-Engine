@@ -11,11 +11,11 @@
   <p>(maybe)Successor to Psych Engine</p>
 </h3>
 
-Engine originally used on SollVerse Mod, intended to be a add more features for the Psych Engine version's while keeping the casual play aspect of it. Also aiming to be an easier alternative to newbie coders. (porting features like from V slice.)
+Engine originally used on SollVerse Mod, intended to be a add more features for Friday Night Funkin' while keeping the casual play aspect of it. Also aiming to be an easier alternative to newbie coders.
 
 Story of Sollaxx Engine:
 
-Sollaxx Engine exists since 2022, but the source code was always privated and never published.
+Sollaxx Engine exists since 2022. It was made for improving FNF's stability and making it easier to mod. like Psych Engine. Sollaxx Engine was also a mixture of Kade & Mic'd Up, but the source code I made for these versions were always privated and never published and unfortunately I have lost them all.. Only found the first ever source code build 
 The engine wasn't perfect back then and was filled with tons of tons of bugs until I have cancelled this engine in 2023 and brought it back in 2024 with the SollVerse mod fixing all the bugs that was before Version 1.3. I wanted Sollaxx Engine to be perfect and here I am finally completing my dreams.
 
 funny how a small version number was made after a year goddamn.
